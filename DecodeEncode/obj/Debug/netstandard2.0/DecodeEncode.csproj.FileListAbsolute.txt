@@ -1,0 +1,14 @@
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\bin\Debug\netstandard2.0\DecodeEncode.deps.json
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\bin\Debug\netstandard2.0\DecodeEncode.dll
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\bin\Debug\netstandard2.0\DecodeEncode.pdb
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\bin\Debug\netstandard2.0\System.Configuration.dll
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\bin\Debug\netstandard2.0\System.Security.dll
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\bin\Debug\netstandard2.0\System.Configuration.xml
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\bin\Debug\netstandard2.0\System.Security.xml
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\obj\Debug\netstandard2.0\DecodeEncode.csprojAssemblyReference.cache
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\obj\Debug\netstandard2.0\DecodeEncode.csproj.CoreCompileInputs.cache
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\obj\Debug\netstandard2.0\DecodeEncode.AssemblyInfoInputs.cache
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\obj\Debug\netstandard2.0\DecodeEncode.AssemblyInfo.cs
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\obj\Debug\netstandard2.0\DecodeEncode.csproj.CopyComplete
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\obj\Debug\netstandard2.0\DecodeEncode.dll
+F:\Projects\UnifiedCRMProject\UniFiedCRM_Latest_01072020\UnifiedCRM_2019\DecodeEncode\obj\Debug\netstandard2.0\DecodeEncode.pdb

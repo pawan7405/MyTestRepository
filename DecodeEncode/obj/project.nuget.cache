@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Lcc/dLoUpNQgUcV5K3wvvXwJpgeNZJ+F7gfGIBdP9YbF8AEO4Y5urGpEPCi3B0ISbZHv8W+hnBn3rzoo7YXrzg==",
+  "success": true,
+  "projectFilePath": "F:\\Projects\\UnifiedCRMProject\\UniFiedCRM_Latest_01072020\\UnifiedCRM_2019\\DecodeEncode\\DecodeEncode.csproj",
+  "expectedPackageFiles": [
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
