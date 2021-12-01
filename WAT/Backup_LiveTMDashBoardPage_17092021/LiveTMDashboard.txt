@@ -1,0 +1,574 @@
+@model  Prism.Model.WAT.LiveTMDashboardModel
+@{
+    ViewBag.Title = "HRSS Dashboard";
+    Layout = "~/Views/Shared/MasterLayout.cshtml";
+}
+@*@using Prism*@
+<div id="DisableDiv">
+    <input type="hidden" id="PageHeading" runat="server" />
+</div>
+<div class="container">
+    <div id="sidebar">
+        <div class="containerBox">
+            <nav class="quick_links">
+                <h2 runat="server" id="td_QuickLinks">Message Broadcast</h2>
+                <ul class="puerto-menu">
+                    <marquee id="MarqueeData" width="100%" direction=up scrollamount="2">
+                        <div id="dvMarque" runat="server"></div>
+                    </marquee>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <div class="main-content">
+        <a href="javascript:void(0)" data-toggle=".container" id="sidebar-toggle">
+            <img src="~/SharedResources/images/submenu_icon.png" alt="" />
+        </a>
+    </div>
+</div>
+<div class="bodyBox body1">
+    <div class="report_typeBox marB38">
+        @using (Html.BeginForm("LiveTMDashboard", "WAT"))
+        {
+            <input type="hidden" id="hidDate" value="@ViewBag.CurrentDate" />
+            <div class="report_head">
+                <h2 id="dvCampaignName">
+                    Dashboard
+                    @*@Model.ProjectName*@
+                </h2>
+                @*@Html.HiddenFor(m => m.ProjectName)*@
+                <h3 id="dvChooseFilters" onclick="HideShow2('showHideBox4');">
+                    <b class="icon-files-empty"></b>Choose Filters
+                </h3>
+                <div class="chart_types disN" id="showHideBox4">
+                    <div class="report_client filterDiv marT10">
+                        <ul class="bor_T">
+                            <li id="dvDaily">
+                                <label id="lbdt">
+                                    Date
+                                </label>
+                                <span class="k-datepicker">
+                                    <input type="hidden" runat="server" id="hidDateFrom" value="@ViewBag.DateFrom" />
+                                    @Html.TextBoxFor(m => m.DateFrom, new { onkeydown = "return false;" })
+                                </span><span class="k-datepicker">
+                                    <input type="hidden" runat="server" id="hidDateTo" value="@ViewBag.DateTo" />
+                                    @Html.TextBoxFor(m => m.DateTo, new { onkeydown = "return false;" })
+                                </span>
+                            </li>
+                            <li id="dvProject">
+                                <input type="hidden" id="hidProjectID" />
+                                <label>
+                                    Client
+                                </label>
+                                @Html.HiddenFor(m => m.ClientIDs)
+                                <select id="ddlClient" name="example" title="Client">
+                                </select>
+                            </li>
+
+                            <li id="DivCategory">
+                                <label>
+                                    Work Item/Queue
+                                </label>
+                                <span>
+                                    @Html.HiddenFor(m => m.WorkItemIDs)
+                                    <select id="ddlWorkItemQueue" name="example" title="WorkItemQueue">
+                                    </select>
+                                </span>
+                            </li>
+                            <li id="liLocation">
+                                <label>
+                                    Team Manager
+                                </label>
+                                @Html.HiddenFor(m => m.TMIDs)
+                                <select id="ddlTM" name="example" title="TM">
+                                </select>
+                            </li>
+                            <li id="liLocation">
+                                <label>
+                                    Agent
+                                </label>
+                                @Html.HiddenFor(m => m.AgentIDs)
+                                <select id="ddlAgent" name="example" title="AgentIDs">
+                                </select>
+                            </li>
+                            <div class="errorBox" id="showHideErrorBoxCampaign" style="display: none;">
+                                <span id="td_MessageCampaign"></span>
+                            </div>
+                            <li class="fr">
+                                <div id="dvCampaignsBtn" class="fr">
+                                    <input type="button" value="Close" class="blue_button fr" id="btnCloseFilters" onclick=" HideShow2('showHideBox4');" />
+                                    <input type="submit" value="Generate" class="blue_button marR10 fr" onclick="return LiveTMDashboard();" />
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="ssc-dashboard">
+                <div class="top-performerAgent">
+                    <h2>
+                        Agent wise Case processed
+                    </h2>
+                    <div id="rb-grid" class="sscoverlayboxAgent">
+                        <div>
+                            <a class="hint--top" data-hint="Show All Agents" id="titlefav" href="#">
+                                <button type="button" class="iconfont-chart-area"></button>
+                            </a>
+                            <div class="rb-overlay">
+                                <div class="chartpopup">
+                                    <h2><b class="rb-close iconfont-cancel"></b></h2>
+                                    <div class="graph-tmsla" id="TotalAgentWiseProcessed">
+
+                                    </div>
+                                    <!--<-->@*h2>Total Unique Case Uploaded <b class="rb-close iconfont-cancel"></b></h2>
+                                        <span id="TotalAgentWiseProcessed" style="height: 410px;"></span>*@
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="boxscrollTMDashBoard" id="testscroll">
+
+                        <table>
+                            <tr>
+                                <th> Agent Name</th>
+                                <th>Case Count</th>
+
+                            </tr>
+                            @{
+                                if (ViewBag.AgentWiseCount != null)
+                                {
+                                    foreach (Prism.Model.WAT.AgentWiseCaseCountList objTopFivePerformerList in ViewBag.AgentWiseCount)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @Html.Label(objTopFivePerformerList.AgentName)
+                                            </td>
+                                            <td align="center">
+                                                @Html.LabelForModel(objTopFivePerformerList.TotalCaseCount)
+                                            </td>
+
+                                        </tr>
+                                    }
+                                }
+                            }
+
+                        </table>
+                    </div>
+
+                    @*<div class="overflowBox6">
+                            <table id="tbl1" width="100%" cellspacing="1" cellpadding="0" border="0" class="gird1">
+                                <tbody>
+                                    <tr>
+                                        <th>
+                                            Agent Name
+                                        </th>
+                                        <th>
+                                            Case Count
+                                        </th>
+                                    </tr>
+
+                                    @{
+                                        if (ViewBag.AgentWiseCount != null)
+                                        {
+                                            foreach (Prism.Model.WAT.AgentWiseCaseCountList objTopFivePerformerList in ViewBag.AgentWiseCount)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @Html.Label(objTopFivePerformerList.AgentName)
+                                                    </td>
+                                                    <td align="center">
+                                                        @Html.LabelForModel(objTopFivePerformerList.TotalCaseCount)
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    }
+
+                                </tbody>
+                            </table>
+
+
+                        </div>*@
+
+                </div>
+
+
+
+
+                <div class="graph-tmsla" id="CampaignWiseAccuracyGraph">
+
+                </div>
+                <div class="total-sampled">
+                    <h2>@Model.TotalUniqueCaseUploaded</h2>
+                    <span>Total Unique Case Uploaded</span>
+                    <div id="rb-grid" class="sscoverlaybox">
+                        <div>
+                            <a class="hint--top" data-hint="Details" id="titlefav" href="#">
+                                <button type="button" class="iconfont-chart-area"></button>
+                            </a>
+                            <div class="rb-overlay">
+                                <div class="chartpopup">
+                                    <h2>Total Unique Case Uploaded <b class="rb-close iconfont-cancel"></b></h2>
+                                    <span id="TotalUniqueCaseUploaded" style="height: 410px;"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="feedback-required">
+                    <h2>@Model.CasePending </h2>
+                    <span>Case Not Processed</span>
+                    <div id="rb-grid" class="sscoverlaybox">
+                        <div>
+                            <a class="hint--top" data-hint="Details" id="titlefav" href="#">
+                                <button type="button" class="iconfont-chart-area bl"></button>
+                            </a>
+                            <div class="rb-overlay">
+                                <div class="chartpopup" style=" height: 430px;">
+                                    <h2>Case Not Processed <b class="rb-close iconfont-cancel"></b></h2>
+                                    <span id="QueueWiseCasePending" style="height: 410px;"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="total-Aux">
+                    @Html.HiddenFor(m => m.ProductiveAux)
+                    <span id="piechart" class="svg-pie"></span>
+                    <h2><b class="fr marT10"></b> <div class="fr"></div></h2>
+                    <b>Total Productive Aux (HH:MM:SS)</b>
+                    <div id="rb-grid" class="sscoverlaybox">
+                        <div>
+                            <a class="hint--top" data-hint="Details" id="titlefav" href="#">
+                                <button type="button" class="iconfont-chart-area bl"></button>
+                            </a>
+                            <div class="rb-overlay">
+                                <div class="chartpopup">
+                                    <h2>Total Productive Aux Agent Wise <b class="rb-close iconfont-cancel"></b></h2>
+                                    <div class="overflowBox6">
+                                        <table id="tbl1" width="900px" cellspacing="1" cellpadding="0" border="0" class="gird1">
+                                            <tbody>
+                                                <tr>
+                                                    <th>
+                                                        Agent Name
+                                                    </th>
+                                                    <th>
+                                                        LoginMID
+                                                    </th>
+                                                    <th>
+                                                        Queue Name
+                                                    </th>
+                                                    <th>
+                                                        Data Date
+                                                    </th>
+                                                    <th>
+                                                        Total Time In Seconds
+                                                    </th>
+                                                    <th>
+                                                        Total Hrs
+                                                    </th>
+                                                    <th>
+                                                        Total Case Count
+                                                    </th>
+
+                                                </tr>
+
+                                                @{
+                                                    if (ViewBag.AgentWiseEPHList != null)
+                                                    {
+                                                        foreach (Prism.Model.WAT.AgentWiseEPH objAgentWiseEPH in ViewBag.AgentWiseEPHList)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    @Html.Label(objAgentWiseEPH.AgentName)
+                                                                </td>
+                                                                <td align="center">
+                                                                    @Html.LabelForModel(objAgentWiseEPH.LoginMID)
+                                                                </td>
+                                                                <td align="center">
+                                                                    @Html.LabelForModel(objAgentWiseEPH.QueueName)
+                                                                </td>
+                                                                <td align="center">
+                                                                    @Html.LabelForModel(objAgentWiseEPH.DataDate)
+                                                                </td>
+                                                                <td align="center">
+                                                                    @Html.LabelForModel(objAgentWiseEPH.TotalTimeInSeconds)
+                                                                </td>
+                                                                <td align="center">
+                                                                    @Html.LabelForModel(objAgentWiseEPH.TotalHrs)
+                                                                </td>
+                                                                <td align="center">
+                                                                    @Html.LabelForModel(objAgentWiseEPH.TotalCaseCount)
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                }
+
+                                            </tbody>
+                                        </table>
+
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="totalCase-Processed">
+                    <h2>@Model.CaseProcessed</h2>
+                    <span>Total Case Processed</span>
+                    <div id="rb-grid" class="sscoverlaybox">
+                        <div>
+                            <a class="hint--top" data-hint="Details" id="titlefav" href="#">
+                                <button type="button" class="iconfont-chart-area bl"></button>
+                            </a>
+                            <div class="rb-overlay">
+                                <div class="chartpopup">
+                                    <h2>hourly wise production/Case processed <b class="rb-close iconfont-cancel"></b></h2>
+                                    <div class="overflowBox6">
+                                        <table id="tbl1" width="1250px" cellspacing="1" cellpadding="0" border="1" class="gird1">
+                                            <tbody>
+                                                <tr>
+                                                    <th>
+                                                        All Dates
+                                                    </th>
+                                                    <th>0</th>
+                                                    <th>1</th>
+                                                    <th>2</th>
+                                                    <th>3</th>
+                                                    <th>4</th>
+                                                    <th>5</th>
+                                                    <th>6</th>
+                                                    <th>7</th>
+                                                    <th>8</th>
+                                                    <th>9</th>
+                                                    <th>10</th>
+                                                    <th>11</th>
+                                                    <th>12</th>
+                                                    <th>13</th>
+                                                    <th>14</th>
+                                                    <th>15</th>
+                                                    <th>16</th>
+                                                    <th>17</th>
+                                                    <th>18</th>
+                                                    <th>19</th>
+                                                    <th>20</th>
+                                                    <th>21</th>
+                                                    <th>22</th>
+                                                    <th>23</th>
+
+                                                </tr>
+
+                                                @{
+                                                    if (ViewBag.QueueWiseUniqueCaseProcessedList != null)
+                                                    {
+                                                        foreach (Prism.Model.WAT.QueueWiseUniqueCaseProcessed objQueueWiseUniqueCaseProcessed in ViewBag.QueueWiseUniqueCaseProcessedList)
+                                                        {
+                                                            <tr>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.DataDate)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Zero)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.One)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Two)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Three)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Four)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Five)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Six)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Seven)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Eight)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Nine)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Ten)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.elevin)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.twele)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.thirteen)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Fourteen)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.Fifteen)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.sixteen)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.seventeen)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.eigteen)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.ninteen)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.twenty)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.twentyone)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.twentytwo)</td>
+                                                                <td style="text-align:center">@Html.Label(objQueueWiseUniqueCaseProcessed.twentythree)</td>
+
+
+
+
+
+                                                            </tr>
+                                                        }
+                                                    }
+                                                }
+
+                                            </tbody>
+                                        </table>
+
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-2 assesment-passed2CaseInProgress">
+                    @*@Html.HiddenFor(m => m.FeedBackPendingPercentage)*@
+                    <h2>@Model.CaseInProgress</h2>
+                    <span>
+                        Case In Progress
+                    </span>
+
+                </div>
+            </div>
+        }
+    </div>
+    <div class="errorBox" id="showHideErrorBox" style="display: none;">
+        <span id="td_Message"></span>
+    </div>
+</div>
+@section Scripts{
+
+    @Scripts.Render("~/SharedResources/JS/jsonpath.js")
+    @Scripts.Render("~/SharedResources/JS/circle-progress.js")
+    @Scripts.Render("~/SharedResources/JS/jquery-pie-loader.js")
+    @Scripts.Render("~/SharedResources/JS/jquery.fittext.js")
+    @Scripts.Render("~/SharedResources/JS/zingchart.min.js")
+    @Scripts.Render("~/SharedResources/JS/modules/zingchart-pareto.min.js")
+    @Scripts.Render("~/scripts/d3.v3.min.js")
+    @Scripts.Render("~/SharedResources/JS/Intelenetd3Charts.min.js")
+    @Scripts.Render("~/SharedResources/JS/boxgrid.js")
+    @Scripts.Render("~/SharedResources/JS/HRSSDashboard.js")
+    @Scripts.Render("~/SharedResources/JS/WAT_LiveTMDashboard.js")
+    @Scripts.Render("~/SharedResources/JS/jquery.overlayScrollbars.js")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#DateFrom").kendoDatePicker({
+                format: "dd/MM/yyyy"
+
+            });
+            $("#DateTo").kendoDatePicker({
+                format: "dd/MM/yyyy"
+
+            });
+            $("#DateFrom").val($('#hidDateFrom').val());
+            $("#DateTo").val($('#hidDateTo').val());
+            $('#lbdt').css('width', 'auto')
+            LoadClients();
+            LoadWorkItemQueue();
+            LoadTMs();
+          //  LoadAgents();
+
+
+
+            //            FusionCharts.addEventListener("ready", function () { /* render your chart here*/ });
+            //            FusionCharts.setCurrentRenderer('javascript')
+            var uicustom;
+            var colors = [];
+            colors = ["#2fb5e5", "#99ca44", "#f7941e", "#3dafa0", "#4680b6"];
+            var data =@Html.Raw(ViewData["CampaignWiseAccuracyD3"]);
+            //var margin = {_width: 420,_height : 260,_top: 15, _right: 20, _bottom: 100, _left: 40 }
+            var margin = { _top: 15, _right: 20, _bottom: 100, _left: 40 }
+            var uicss = { _rect: "bar-rect", _xaxis: "bar-x-axis", _yaxis: "bar-y-axis", _xaxislabel: "bar-xaxis-lable", _yaxislabel: "bar-yaxis-lable", _ylegend: "bar-y-lable", _xaxisminorline: "bar-x-line", _yaxisminorline: "bar-y-line", _datavalue: "bar-data-value", _legend: "bar-legend", _tooltip: "bar-tooltip" };
+            Intelenetd3Charts.bindD3bar(data, "CampaignWiseAccuracyGraph", margin, { _datavalue: true, _minorgridlines: false, _yvalue: "", _format: "", _legtitle: "bottom" }, uicss);
+
+            $(".show_hide").on("click.CampaignWiseAccuracyGraph", function () {
+                data =@Html.Raw(ViewData["CampaignWiseAccuracyD3"]);
+                margin = { _top: 15, _right: 20, _bottom: 100, _left: 40 }
+                uicss = { _rect: "bar-rect", _xaxis: "bar-x-axis", _yaxis: "bar-y-axis", _xaxislabel: "bar-xaxis-lable", _yaxislabel: "bar-yaxis-lable", _ylegend: "bar-y-lable", _xaxisminorline: "bar-x-line", _yaxisminorline: "bar-y-line", _datavalue: "bar-data-value", _legend: "bar-legend", _tooltip: "bar-tooltip" };
+                Intelenetd3Charts.bindD3bar(data, "CampaignWiseAccuracyGraph", margin, { _datavalue: true, _minorgridlines: false, _yvalue: "", _format: "", _legtitle: "bottom" }, uicss);
+            }
+            );
+
+
+
+            //START HERE --CHART FOR AGENT WISE CASE PROCESSED
+            var data=@Html.Raw(ViewData["AgentWiseData"]);
+             //var margin = {_width: 420,_height : 260,_top: 15, _right: 20, _bottom: 100, _left: 40 }
+             var margin = {_top: 15, _right: 20, _bottom: 100, _left: 40 }
+             var uicss={_rect:"bar-rect",_xaxis:"bar-x-axis",_yaxis:"bar-y-axis",_xaxislabel:"bar-xaxis-lable",_yaxislabel:"bar-yaxis-lable",_ylegend :"bar-y-lable",_xaxisminorline:"bar-x-line",_yaxisminorline:"bar-y-line",_datavalue:"bar-data-value",_legend:"bar-legend",_tooltip:"bar-tooltip"};
+            Intelenetd3Charts.bindD3bar(data,"TotalAgentWiseProcessed",margin,{_datavalue:true,_minorgridlines:false,_yvalue:"",_format:"",_legtitle:"bottom"},uicss);
+
+            $(".show_hide").on("click.TotalAgentWiseProcessed", function () {
+             data=@Html.Raw(ViewData["AgentWiseData"]);
+             margin = {_top: 15, _right: 20, _bottom: 100, _left: 40 }
+             uicss={_rect:"bar-rect",_xaxis:"bar-x-axis",_yaxis:"bar-y-axis",_xaxislabel:"bar-xaxis-lable",_yaxislabel:"bar-yaxis-lable",_ylegend :"bar-y-lable",_xaxisminorline:"bar-x-line",_yaxisminorline:"bar-y-line",_datavalue:"bar-data-value",_legend:"bar-legend",_tooltip:"bar-tooltip"};
+                Intelenetd3Charts.bindD3bar(data,"TotalAgentWiseProcessed",margin,{_datavalue:true,_minorgridlines:false,_yvalue:"",_format:"",_legtitle:"bottom"},uicss);
+            }
+            );
+
+            //END HERE--CHART FOR AGENT WISE CASE PROCESSED
+
+
+
+            //COMMENTED FOR HRSS WORKING
+            //            margin = {_width: 400,_height : 350,_top: 15, _right: 20, _bottom: 150, _left: 40}
+            ////            margin = {_top: 10, _right: 20, _bottom: 180, _left: 40}
+            ////            data=@Html.Raw(ViewData["DefectsD3"]);
+            ////            Intelenetd3Charts.bindD3StackedBar(data,"DefectsGraph",margin,{_minorgridlines:false},{});
+            //bindD3StackedBar//bindD3StackedArea//bindD3AreaChart
+            ParetoDefects(@Html.Raw(ViewData["DefectsD3"]));
+            //            margin = {_width: 600,_height : 400,_top: 15, _right: 20, _bottom: 150, _left: 40}
+
+            margin = { _top: 15, _right: 20, _bottom: 150, _left: 40 }
+            data =@Html.Raw(ViewData["QueueWiseUniqueCaseUploaded"]);
+            Intelenetd3Charts.bindD3MultiSeriesBar(data, "TotalUniqueCaseUploaded", margin, { _datavalue: true, _minorgridlines: false, _yvalue: "", _format: "", _legtitle: "right" }, {});
+
+
+
+            @*margin = { _top: 15, _right: 500, _bottom: 50, _left: 500 }
+            data =@Html.Raw(ViewData["AgentWiseData"]);
+            var uicss = { _rect: "bar-rect", _xaxis: "bar-x-axis", _yaxis: "bar-y-axis", _xaxislabel: "bar-xaxis-lable", _yaxislabel: "bar-yaxis-lable", _ylegend: "bar-y-lable", _xaxisminorline: "bar-x-line", _yaxisminorline: "bar-y-line", _datavalue: "bar-data-value", _legend: "bar-legend", _tooltip: "bar-tooltip" };
+            Intelenetd3Charts.bindD3AreaChart(data, "TotalAgentWiseProcessed", margin, { _datavalue: true, _minorgridlines: false, _yvalue: "", _format: "", _legtitle: "right" }, uicss)*@
+
+
+
+
+
+
+            margin = {_top: 15, _right: 20, _bottom: 150, _left: 40}
+            data=@Html.Raw(ViewData["QueueWiseCasePending"]);
+            Intelenetd3Charts.bindD3MultiSeriesBar(data, "QueueWiseCasePending", margin, { _datavalue: true, _minorgridlines: false, _yvalue: "", _format: "", _legtitle: "right" }, {});
+
+
+            $("#testscroll").addClass("boxscroll os-host os-theme-round-dark os-host-resize-disabled os-host-overflow os-host-overflow-x os-host-overflow-y os-host-transition");
+            $('.boxscroll').overlayScrollbars({ className: "os-theme-round-dark" });
+
+
+             @*margin = {_top: 15, _right: 20, _bottom: 150, _left: 40}
+            data=@Html.Raw(ViewData["AuditDetail"]);
+            Intelenetd3Charts.bindD3MultiSeriesBar(data,"AuditedDetailGraph",margin,{_legtitle:"right",_minorgridlines:false,_format:"d",_rotate:true},{});*@
+
+
+
+            var FeedBackPending = $("#FeedBackPendingPercentage").val();
+            var FeedBackPendingVal = parseFloat(FeedBackPending/100);
+            $('.PendingFeedback.circle').circleProgress({
+                value: FeedBackPendingVal
+            }).on('circle-animation-progress', function (event, progress) {
+                $(this).find('strong').html(parseInt(FeedBackPending * progress) + '<i>%</i>');
+            });
+
+            var ProductiveAux = $("#ProductiveAux").val();
+        //alert(ProductiveAux);
+            $('#piechart').text(ProductiveAux);
+           // $('#piechart').svgPie(ProductiveAux );
+
+            $(function() {
+				Boxgrid.init();
+			});
+
+            $("._SmartLabel_Container").each
+                (function(i){
+                    console.log($(this).html());
+                    $(this).remove();
+                });
+               });
+    </script>
+}

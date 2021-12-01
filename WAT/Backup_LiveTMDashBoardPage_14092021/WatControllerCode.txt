@@ -1,0 +1,1969 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Collections;
+using System.Data;
+using System.Text;
+using System.IO;
+using System.Web.Security;
+using Microsoft.Web.WebPages.OAuth;
+using WebMatrix.WebData;
+using System.Transactions;
+using System.Net.Mail;
+using System.Web.Configuration;
+using System.Web.Script.Serialization;
+using Prism.Model.WAT;
+using Prism.DAL;
+using Prism.Utility;
+using Prism.Filters;
+using InfoSoftGlobal;
+using System.Configuration;
+using System.Reflection;
+using OfficeOpenXml;
+using OfficeOpenXml.Drawing;
+using MvcReportViewer;
+using System.Xml;
+
+namespace Prism.Controllers
+{
+    [Authorize]
+    [MyAuthorizeAttribute]
+    [MyActionFilterAttribute]
+    ////[LoggingFilterAttribute]
+    public partial class WatController : Controller
+    {
+        Dictionary<int, Prism.Model.QMS.ColumnDetail> ExcelTemplate = new Dictionary<int, Prism.Model.QMS.ColumnDetail>();
+        int ExcelTemplateStartLine = 1;
+        string ControlsQueryString = string.Empty;
+        DalReports reports;
+        DataTable dt;
+        #region  --------------------- Employee Attendance  -------------------------------
+
+        /// <summary>
+        /// Action : Open Employee Attendance user view , Method : Get
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="id1"></param>
+        /// <param name="id2"></param>
+        /// <param name="id3"></param>
+        /// <param name="id4"></param>
+        /// <remarks>
+        /// id  =MenuName,MenuMDID in encrypted form,
+        /// id1 =New/Udpate.if screen to create new user is required or load existing data in order to update login
+        /// id2 =Ops for BI user , NonOps = for non BI user can be QMS,Clinet only login
+        /// id3 = Load or null
+        /// id4 = Globaluserid if it is create request(id1=New) else loginmid if udpate existing employee
+        /// </remarks>
+        [HttpGet]
+        public ActionResult EmployeeAttendance(string id, string id1, string id2, string id3, string id4)
+        {
+            try
+            {
+                ViewBag.Message = "";
+                ViewBag.MenuMDID = Querystring.Query("MenuMDID");
+                Prism.Model.WAT.WatEmployeeAttendance model = new Prism.Model.WAT.WatEmployeeAttendance();
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation, please try later.";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "EmployeeAttendance", ex.ToString());
+                return View();
+            }
+        }
+
+        /// <summary>
+        /// Fetch TM by client
+        /// </summary>
+        /// <param name="ClientIDs"></param>
+        /// <returns></returns>
+        public JsonResult FetchTM(string ClientIDs)
+        {
+            string Result = string.Empty;
+            Dalwat daObj = new Dalwat();
+            ds = daObj.FillDropDown(Parameter.GetTM.ToString(), Session[Parameter.AccessType.ToString()].ToString(), Session[Parameter.GlobalUserID.ToString()].ToString(), EncodeDecode.Decode(ClientIDs));
+            if (ds != null)
+            {
+                Result = CommonFunctions.ListToString(ds);
+            }
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+        private enum Parameter
+        {
+            AttCodeMID,
+            AttendanceCode,
+            AttCodeMaster,
+            GetTM,
+            EmployeeName,
+            Select,
+            AccessType,
+            GlobalUserID
+        }
+
+        /// <summary>
+        /// Action : Search/Save Employee Attendance, Method : Post
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="fc"></param>
+        [HttpPost]
+        public ActionResult EmployeeAttendance(Prism.Model.WAT.WatEmployeeAttendance model, FormCollection fc)
+        {
+            Prism.Model.WAT.WatEmployeeAttendance objModel = new Model.WAT.WatEmployeeAttendance();
+            try
+            {
+                model.AccessType = Session[Parameter.AccessType.ToString()].ToString();
+                model.GlobalUserID = Session["GlobalUserID"].ToString();
+                model.DateFrom = FormatDate(model.DateFrom);
+                model.DateTo = FormatDate(model.DateTo);
+                objModel.TMIDs = model.TMIDs;
+                objModel.ClientIDs = model.ClientIDs;
+                objModel.EmployeeName = model.EmployeeName;
+                Dalwat daObj = new Dalwat();
+                List<Prism.Model.WAT.AttendanceLeaveDetails> objLoadAttendanceLeaveDetails = new List<Model.WAT.AttendanceLeaveDetails>();
+                ds = daObj.BO_AttendanceDetails(model, EncodeDecode.Decode(model.ClientIDs));
+
+                if (fc["hdnSubmitOption"].ToString() == "1")
+                {
+                    DataSet _dsAttendance = new DataSet();
+                    _dsAttendance.Tables.Add("AttendanceDetails");
+                    _dsAttendance.Tables[0].Columns.Add("AttendanceDate");
+                    _dsAttendance.Tables[0].Columns.Add("LoginMID");
+                    _dsAttendance.Tables[0].Columns.Add("GlobalUserID");
+                    _dsAttendance.Tables[0].Columns.Add("ParentGlobalUserID");
+                    _dsAttendance.Tables[0].Columns.Add("FTE");
+                    _dsAttendance.Tables[0].Columns.Add("Sickness");
+                    _dsAttendance.Tables[0].Columns.Add("Maternity");
+                    _dsAttendance.Tables[0].Columns.Add("Holiday");
+                    _dsAttendance.Tables[0].Columns.Add("FlexiTaken");
+                    _dsAttendance.Tables[0].Columns.Add("FlexiAccured");
+                    _dsAttendance.Tables[0].Columns.Add("AttendanceID");
+                    _dsAttendance.Tables[0].Columns.Add("Comment");
+
+                    if (model.LoadAttendanceLeaveDetails.Count > 0)
+                    {
+                        for (int i = 0; i < ds.Tables[1].Rows.Count; i++)
+                        {
+
+                            for (int j = 0; j < model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails.Count; j++)
+                            {
+                                DataRow dr;
+                                dr = _dsAttendance.Tables[0].NewRow();
+                                dr["AttendanceDate"] = FormatDate(model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].AttendanceDate);
+                                dr["LoginMID"] = model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].LoginMID;
+                                dr["GlobalUserID"] = model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].GlobalUserID;
+                                dr["ParentGlobalUserID"] = model.TMIDs;
+                                dr["FTE"] = model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].FTE;
+                                dr["Sickness"] = model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].Sickness;
+                                dr["Maternity"] = model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].Maternity;
+                                dr["Holiday"] = model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].Holiday;
+                                dr["FlexiTaken"] = model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].FlexiTaken;
+                                dr["FlexiAccured"] = model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].FlexiAccured;
+                                dr["Comment"] = model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].Comment;
+                                dr["AttendanceID"] = model.LoadAttendanceLeaveDetails[i].LoadAttendanceDetails[j].AttendanceID;
+                                _dsAttendance.Tables[0].Rows.Add(dr);
+                            }
+                        }
+                    }
+                    model.XML = _dsAttendance.GetXml();
+                    model.CreatedBy = Session["LoginMID"].ToString();
+                    model.Host = Session["Host"].ToString();
+                    DataSet dsresult = daObj.SaveThurrockAttendanceDetail(model);
+                    objModel.hdnSaveStatus = dsresult.Tables[0].Rows[0]["ErrorMessage"].ToString();
+                    ds = daObj.BO_AttendanceDetails(model, EncodeDecode.Decode(model.ClientIDs));
+                    objLoadAttendanceLeaveDetails = GetAttendanceLeaveDetailsList(ds.Tables[1], model, ds.Tables[0]);
+                    objModel.LoadAttendanceLeaveDetails = objLoadAttendanceLeaveDetails;
+                }
+                else
+                {
+                    objLoadAttendanceLeaveDetails.Clear();
+                    objLoadAttendanceLeaveDetails = GetAttendanceLeaveDetailsList(ds.Tables[1], model, ds.Tables[0]);
+                    objModel.LoadAttendanceLeaveDetails = objLoadAttendanceLeaveDetails;
+                    objModel.hdnSaveStatus = "";
+                }
+                ViewBag.DateFrom = Convert.ToDateTime(FormatDate(model.DateFrom)).ToString("dd/MM/yyyy");
+                ViewBag.DateTo = Convert.ToDateTime(FormatDate(model.DateTo)).ToString("dd/MM/yyyy");
+                ModelState.Clear();
+                ViewBag.Message = "";
+                ViewBag.MenuMDID = Querystring.Query("MenuMDID");
+                return View(objModel);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation, please try later.";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "EmployeeAttendance", ex.ToString());
+                return View(model);
+            }
+        }
+
+        /// <summary>
+        /// Bind Attendance Details to list object.
+        /// <param name="dt1">Attendance Detail table data</param> 
+        /// <param name="Number">Attendance Leave Detail table row number </param>     
+        /// </summary>  
+        public List<Prism.Model.WAT.AttendanceDetails> GetAttendanceDetailsList(DataTable dt1, Int64 Number, Int64 LoginMID)
+        {
+            DataTable filteredTable;
+            List<Prism.Model.WAT.AttendanceDetails> obj = new List<Prism.Model.WAT.AttendanceDetails>();
+            if (dt1.Rows.Count > 0)
+            {
+                filteredTable = (from n in dt1.AsEnumerable()
+                                 where n.Field<Int64?>("Number") == Number && n.Field<Int64?>("LoginMID") == LoginMID
+                                 select n).CopyToDataTable();
+                if (filteredTable != null && filteredTable.Rows.Count > 0)
+                {
+                    for (int i = 0; i < filteredTable.Rows.Count; i++)
+                    {
+                        Prism.Model.WAT.AttendanceDetails obj1 = new Prism.Model.WAT.AttendanceDetails();
+                        obj1.GlobalUserID = filteredTable.Rows[i]["GlobalUserID"].ToString();
+                        obj1.EmployeeName = filteredTable.Rows[i]["EmployeeName"].ToString();
+                        obj1.Number = filteredTable.Rows[i]["Number"].ToString();
+                        obj1.AttendanceDate = filteredTable.Rows[i]["AttendanceDate"].ToString();
+                        obj1.FTE = filteredTable.Rows[i]["FTE"].ToString();
+                        obj1.Sickness = filteredTable.Rows[i]["Sickness"].ToString();
+                        obj1.Maternity = filteredTable.Rows[i]["Maternity"].ToString();
+                        obj1.Holiday = filteredTable.Rows[i]["Holiday"].ToString();
+                        obj1.FlexiTaken = filteredTable.Rows[i]["FlexiTaken"].ToString();
+                        obj1.FlexiAccured = filteredTable.Rows[i]["FlexiAccured"].ToString();
+                        obj1.AttendanceID = filteredTable.Rows[i]["AttendanceID"].ToString();
+                        obj1.LoginMID = filteredTable.Rows[i]["LoginMID"].ToString();
+                        obj1.ParentGlobalUserID = filteredTable.Rows[i]["ParentGlobalUserID"].ToString();
+                        obj1.Comment = filteredTable.Rows[i]["Comment"].ToString();
+                        obj.Add(obj1);
+                    }
+                }
+            }
+            return obj;
+        }
+
+        /// <summary>
+        /// Bind Attendance Leave Details to list object.
+        /// <param name="dt1">AttendanceLeaveDetail table data</param> 
+        /// <param name="model">Contain object of type WatEmployeeAttendance </param>     
+        /// <param name="dt2">AttendanceDetails table</param>
+        /// </summary>  
+        public List<Prism.Model.WAT.AttendanceLeaveDetails> GetAttendanceLeaveDetailsList(DataTable dt1, Prism.Model.WAT.WatEmployeeAttendance model, DataTable dt2)
+        {
+            List<Prism.Model.WAT.AttendanceLeaveDetails> obj = new List<Prism.Model.WAT.AttendanceLeaveDetails>();
+            if (dt1.Rows.Count > 0)
+            {
+                for (int i = 0; i < dt1.Rows.Count; i++)
+                {
+                    Prism.Model.WAT.AttendanceLeaveDetails obj1 = new Prism.Model.WAT.AttendanceLeaveDetails();
+                    obj1.Number = dt1.Rows[i]["Number"].ToString();
+                    obj1.FTE = dt1.Rows[i]["FTE"].ToString();
+                    obj1.Sickness = dt1.Rows[i]["Sickness"].ToString();
+                    obj1.Maternity = dt1.Rows[i]["Maternity"].ToString();
+                    obj1.Holiday = dt1.Rows[i]["Holiday"].ToString();
+                    obj1.FlexiTaken = dt1.Rows[i]["FlexiTaken"].ToString();
+                    obj1.FlexiAccured = dt1.Rows[i]["FlexiAccured"].ToString();
+                    obj1.LoginMID = dt1.Rows[i]["LoginMID"].ToString();
+                    List<Prism.Model.WAT.AttendanceDetails> objLoadAttendanceDetails = GetAttendanceDetailsList(dt2, Convert.ToInt64(dt1.Rows[i]["Number"].ToString()), Convert.ToInt64(dt1.Rows[i]["LoginMID"].ToString()));
+                    obj1.LoadAttendanceDetails = objLoadAttendanceDetails;
+                    obj.Add(obj1);
+
+                }
+            }
+            return obj;
+        }
+
+        /// <summary>
+        /// This function is used to convert date string to "yyyy-MM-dd" format
+        /// </summary> 
+        /// <param name="Date"> date in dd/MM/yyyy Format </param>
+        public string FormatDate(String Date)
+        {
+            if (Date != "" && Date != null)
+            {
+                IFormatProvider mFomatter = new System.Globalization.CultureInfo("en-GB");
+                DateTime Dt = DateTime.Parse(Date, mFomatter);
+                return Dt.ToString("yyyy-MM-dd");
+            }
+            else
+            {
+                return Date;
+            }
+        }
+
+        public string FormatDateHilton(String Date)
+        {
+            if (Date != "" && Date != null)
+            {
+                IFormatProvider mFomatter = new System.Globalization.CultureInfo("en-US");
+                DateTime Dt = DateTime.Parse(Date, mFomatter);
+                return Dt.ToString("yyyy-MM-dd");
+            }
+            else
+            {
+                return Date;
+            }
+        }
+        #endregion
+
+        #region  --------------------- Employee Attendance Upload -------------------------------
+
+        /// <summary>
+        /// Action : Open Employee Attendance Upload View. Mehod : Get
+        /// </summary>
+        ///<param name="id">Contain MenuMDID and MenuName in encrypted from</param>
+        [HttpGet]
+        public ActionResult EmployeeAttendanceUpload(string id)
+        {
+            try
+            {
+                Dalwat da = new Dalwat();
+                Prism.Model.WAT.EmployeeAttendanceUpload edu = new Prism.Model.WAT.EmployeeAttendanceUpload();
+                ds = da.FillDropDown("ClientForEmployeeUpload", "", Session["GlobalUserID"].ToString(), Session["AccessType"].ToString());
+                List<Prism.Model.WAT.EmployeeAttendanceUpload> objClients = GetClientList(ds.Tables[0]);
+                ViewBag.ClientList = new SelectList(objClients, "ClientID", "ClientName");
+                ViewBag.MenuID = id;
+                ViewBag.MenuMDID = Querystring.Query("MenuMDID");
+                if (TempData["Message"] != null)
+                {
+                    ViewBag.Message = TempData["Message"];
+                }
+
+                DataSet dsDetail = da.GetEmployeeUplodedAttendance(Convert.ToInt64(Session["LoginMID"]), Convert.ToInt32(Session["AccessType"]));
+                ViewBag.RecordCount = (dsDetail.Tables[0].Rows.Count == 0 ? "No Record Found" : dsDetail.Tables[0].Rows.Count.ToString() + " record found");
+                List<Prism.Model.WAT.EmployeeAttendanceUploadDetail> objTables = GetTableList(dsDetail.Tables[0]);
+                edu.EmployeeAttendanceUploadList = objTables;
+                return View(edu);
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] = "Problem performing operation, please try later.";
+                ViewBag.Message = TempData["Message"];
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "EmployeeAttendanceUpload", ex.ToString());
+                return View();
+            }
+        }
+
+        /// <summary>
+        /// Convert Client List in datatable to list of type EmployeeDataUploadDetail
+        /// </summary>
+        /// <param name="dt1">Contain Client List</param>
+        /// <returns></returns>
+        public List<Prism.Model.WAT.EmployeeAttendanceUpload> GetClientList(DataTable dt1)
+        {
+            List<Prism.Model.WAT.EmployeeAttendanceUpload> obj = new List<Prism.Model.WAT.EmployeeAttendanceUpload>();
+            if (dt1.Rows.Count > 0)
+            {
+                for (int i = 0; i < dt1.Rows.Count; i++)
+                {
+                    Prism.Model.WAT.EmployeeAttendanceUpload obj1 = new Prism.Model.WAT.EmployeeAttendanceUpload();
+                    obj1.ClientID = EncodeDecode.Encode(dt1.Rows[i]["ClientID"].ToString());
+                    obj1.ClientName = dt1.Rows[i]["ClientName"].ToString();
+                    obj.Add(obj1);
+                }
+            }
+            return obj;
+        }
+
+
+
+
+        /// <summary>
+        /// Convert Upload Detail in datatable to list of type EmployeeDataUpload
+        /// </summary>
+        /// <param name="dt1">Contain Upload Detail</param>
+        /// <returns></returns>
+        public List<Prism.Model.WAT.EmployeeAttendanceUploadDetail> GetTableList(DataTable dt1)
+        {
+            List<Prism.Model.WAT.EmployeeAttendanceUploadDetail> obj = new List<Prism.Model.WAT.EmployeeAttendanceUploadDetail>();
+            if (dt1.Rows.Count > 0)
+            {
+                for (int i = 0; i < dt1.Rows.Count; i++)
+                {
+                    Prism.Model.WAT.EmployeeAttendanceUploadDetail obj1 = new Prism.Model.WAT.EmployeeAttendanceUploadDetail();
+                    obj1.ClientName = dt1.Rows[i]["ClientName"].ToString();
+                    obj1.FileName = dt1.Rows[i]["FileName"].ToString();
+                    obj1.ActualFileName = dt1.Rows[i]["ActualFileName"].ToString();
+                    obj1.RecordCount = dt1.Rows[i]["RecordCount"].ToString();
+                    obj1.ValidRecordCount = dt1.Rows[i]["ValidRecordCount"].ToString();
+                    obj1.InValidRecordCount = dt1.Rows[i]["InValidRecordCount"].ToString();
+                    obj1.Status = dt1.Rows[i]["Status"].ToString();
+                    obj1.CreatedDateTime = dt1.Rows[i]["CreatedDateTime"].ToString();
+                    obj1.EmployeeName = dt1.Rows[i]["EmployeeName"].ToString();
+                    obj1.FileUMID = EncodeDecode.Encode(dt1.Rows[i]["FileUMID"].ToString());
+                    obj.Add(obj1);
+                }
+            }
+            return obj;
+        }
+
+
+
+        /// <summary>
+        /// Action : Import csv file containg employee record for a client in the system. , Mehod : Post
+        /// </summary>
+        /// <param name="edModel">object of type EmployeeDataUpload</param>
+        /// <param name="UploadType">Type of Upload</param>
+        /// <param name="MenuID">MenuMDID for the view</param>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult EmployeeAttendanceUpload(Prism.Model.Admin.EmployeeDataUpload edModel, string UploadType, string MenuID)
+        {
+            Dalwat da = new Dalwat();
+            Prism.Model.WAT.EmployeeAttendanceUpload obj = new Prism.Model.WAT.EmployeeAttendanceUpload();
+            string FileName = "", FilePath = "", ActualFileName = string.Empty;
+            HttpPostedFileBase fileupload = Request.Files["file"];
+            ds = da.FillDropDown("ClientForEmployeeUpload", "", Session["GlobalUserID"].ToString(), Session["AccessType"].ToString());
+            List<Prism.Model.WAT.EmployeeAttendanceUpload> objClients = GetClientList(ds.Tables[0]);
+            ViewBag.ClientList = new SelectList(objClients, "ClientID", "ClientName");
+
+            if (fileupload != null && fileupload.ContentLength > 0)
+            {
+
+                try
+                {
+                    string extention = Path.GetExtension(fileupload.FileName);
+                    DateTime datetime = DateTime.Now;
+                    ActualFileName = fileupload.FileName;
+                    string rDom = CommonFunctions.RandomInteger(1000, 9999).ToString();
+                    string unique = datetime.Year.ToString() + datetime.Month.ToString() + datetime.Day.ToString() + datetime.Hour.ToString() + datetime.Minute.ToString() + datetime.Second.ToString() + rDom;
+                    FileName = edModel.ClientName.ToString().Replace(" ", "") + unique + extention;
+                    FilePath = Server.MapPath(ConfigurationManager.AppSettings["AppName"].ToString() + ConfigurationManager.AppSettings["EAFileUploadPath"].ToString());
+                    fileupload.SaveAs(FilePath + FileName);
+                    obj.ClientID = EncodeDecode.Decode(edModel.ClientID);
+                    obj.FilePath = ConfigurationManager.AppSettings["EAFileUploadPath"];
+                    obj.FileName = FileName;
+                    obj.FilePathSystem = FilePath;
+                    obj.ActualFileName = ActualFileName;
+                    obj.Status = 1;
+                    obj.UploadType = 1;
+                    obj.CreatedBy = Session["LoginMID"].ToString();
+                    obj.Host = Session["Host"].ToString();
+                    ViewBag.MenuID = MenuID;
+                    SaveAndValidateExcel(obj);
+                    Int64 result = da.EmployeeAttendanceFileUpload(obj);
+                    if (result == 1)
+                    {
+                        TempData["Message"] = "Employee attendance uploaded sucessfully.";
+                        ViewBag.MenuID = MenuID;
+                        return RedirectToAction("EmployeeAttendanceUpload/" + MenuID + "/", "WAT");
+                    }
+                    else
+                    {
+                        TempData["Message"] = "Problem uploading employee attendance.";
+                        ViewBag.MenuID = MenuID;
+                        return RedirectToAction("EmployeeAttendanceUpload/" + MenuID + "/", "WAT");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["Message"] = "Problem performing operation ,Please try later.";
+                    ErrorLogger.ErrorLog("WAT/EmployeeAttendanceUpload", "Employee Data Upload", ex.ToString());
+                    return RedirectToAction("EmployeeAttendanceUpload/" + MenuID + "/", "WAT");
+                }
+            }
+            return RedirectToAction("EmployeeDataUpload/" + MenuID + "/", "Admin");
+        }
+
+        /// <summary>
+        /// save and validate excel sheet
+        /// </summary>
+        /// <param name="upload"> object of type RandomizerDataUpload</param>
+        private void SaveAndValidateExcel(EmployeeAttendanceUpload upload)
+        {
+            try
+            {
+                DataSet dset = new DataSet();
+                string filepath = upload.FilePathSystem + upload.FileName;
+                FileInfo fileread = new FileInfo(filepath);
+                ExcelPackage exlpakage = new ExcelPackage(fileread);
+                ExcelWorksheet worksheet = exlpakage.Workbook.Worksheets[1];
+                PopulateTemplate();
+                int totalCols = worksheet.Dimension.End.Column;
+                if (totalCols != ExcelTemplate.Keys.Count)
+                {
+                    TempData["Message"] = "Uploaded file's column did not with the template sheet.";
+                    return;
+                }
+
+                for (int j = 1; j <= totalCols; j++)
+                {
+                    if (ExcelTemplate[j].ExcelColumn.ToString().Trim() != worksheet.Cells[ExcelTemplateStartLine, j].Value.ToString().Trim())
+                    {
+                        TempData["Message"] = "Uploaded file's column didn't match template sheet.";
+                        return;
+                    }
+                }
+
+                dt = WorksheetToDataTable(worksheet);
+                dset.Tables.Add(dt);
+                upload.UploadData = dset.GetXml();
+                upload.CreatedBy = Session["LoginMID"].ToString();
+                upload.Host = Session["Host"].ToString();
+                return;
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] = "An error occurred while vaidating/saving file,Please try again later";
+                ErrorLogger.ErrorLog("Admin/Upload", "Employee Data Upload", ex.ToString());
+
+            }
+        }
+
+        /// <summary>
+        /// Populate Template
+        /// </summary>
+        /// <param name="type"> type</param>
+        private void PopulateTemplate()
+        {
+            Dalwat da = new Dalwat();
+            DataSet dsUploadStructure = da.FetchEAUTemplateDetail("1", "202");
+            if (dsUploadStructure.Tables[0] != null)
+            {
+                ExcelTemplateStartLine = Convert.ToInt16(dsUploadStructure.Tables[0].Rows[0]["StartRow"]);
+                foreach (DataRow dr in dsUploadStructure.Tables[0].Rows)
+                {
+                    ExcelTemplate.Add(Convert.ToInt16(dr["order"]), new Prism.Model.QMS.ColumnDetail(dr["ExcelColumn"].ToString(), dr["DBColumn"].ToString()));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Excel sheet to data table
+        /// </summary>
+        /// <param name="oSheet"> object of type ExcelWorksheet</param>
+        private DataTable WorksheetToDataTable(ExcelWorksheet oSheet)
+        {
+            int totalRows = oSheet.Dimension.End.Row;
+            int totalCols = oSheet.Dimension.End.Column;
+            dt = new DataTable("UploadData");
+            DataRow dr = null;
+            for (int i = ExcelTemplateStartLine; i <= totalRows; i++)
+            {
+                if (oSheet.Cells[i, 1].Value == null || oSheet.Cells[i, 1].Value.ToString() == "")
+                {
+                    return dt;
+                }
+                if (i > ExcelTemplateStartLine) dr = dt.Rows.Add();
+                for (int j = 1; j <= totalCols; j++)
+                {
+                    if (i == ExcelTemplateStartLine)
+                    {
+                        dt.Columns.Add(ExcelTemplate[j].DBColumn.ToString().Trim());
+                    }
+                    else
+                    {
+                        if (dr != null)
+                        {
+                            dr[j - 1] = (oSheet.Cells[i, j].Value == null ? DBNull.Value : oSheet.Cells[i, j].Value);
+                        }
+                    }
+                }
+            }
+            return dt;
+        }
+
+        /// <summary>
+        /// Action :Export all records in excel corresponding to FileUMID , Mehod : Get
+        /// </summary>
+        /// <param name="id">Contain FileUMID</param>
+        /// <returns></returns>
+        public ActionResult TotalExportExcel(string id)
+        {
+            Dalwat da = new Dalwat();
+            ds = da.EAUDataExporttoExcel(EncodeDecode.Decode(id), 1);
+            try
+            {
+                ViewBag.Message = "";
+                ExcelDownload(ds.Tables[0], "TotalRecords");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation ,Please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "TotalExportExcel", ex.ToString());
+                return View();
+            }
+            return View();
+        }
+        /// <summary>
+        /// Action :Export only valid records in excel corresponding to FileUMID , Mehod : Get
+        /// </summary>
+        /// <param name="id">Contain FileUMID</param>
+        /// <returns></returns>
+        public ActionResult ValidRecordExportExcel(string id)
+        {
+            Dalwat da = new Dalwat();
+            ds = da.EAUDataExporttoExcel(EncodeDecode.Decode(id), 2);
+            try
+            {
+                ViewBag.Message = "";
+                ExcelDownload(ds.Tables[0], "ValidRecord");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation ,Please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "ValidRecordExportExcel", ex.ToString());
+                return View();
+            }
+            return View();
+        }
+
+        /// <summary>
+        /// Action :Export only invalid records in excel corresponding to FileUMID , Mehod : Get
+        /// </summary>
+        /// <param name="id">Contain FileUMID</param>
+        /// <returns></returns>
+        public ActionResult InValidRecordExportExcel(string id)
+        {
+            Dalwat da = new Dalwat();
+            ds = da.EAUDataExporttoExcel(EncodeDecode.Decode(id), 3);
+            try
+            {
+                ViewBag.Message = "";
+                ExcelDownload(ds.Tables[0], "InValidRecord");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation ,Please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "ValidRecordExportExcel", ex.ToString());
+                return View();
+            }
+            return View();
+        }
+
+        /// <summary>
+        /// Function export the record in datatable to excel
+        /// </summary>
+        /// <param name="dt">Datatable contain rows which need to be export in excel</param>
+        /// <param name="filename">Name of export file</param>
+        protected void ExcelDownload(DataTable dt, string filename)
+        {
+            HttpContext.Response.Clear();
+            HttpContext.Response.ClearContent();
+            HttpContext.Response.ClearHeaders();
+            HttpContext.Response.Buffer = true;
+            HttpContext.Response.ContentType = "application/ms-excel";
+            HttpContext.Response.Write(@"<!DOCTYPE HTML PUBLIC ""-//W3C//DTD HTML 4.0 Transitional//EN"">");
+            HttpContext.Response.AddHeader("Content-Disposition", "attachment;filename=" + filename + ".xls");
+
+            HttpContext.Response.Charset = "utf-8";
+            HttpContext.Response.ContentEncoding = System.Text.Encoding.GetEncoding("windows-1250");
+            //sets font
+            HttpContext.Response.Write("<font style='font-size:10.0pt; font-family:Calibri;'>");
+            HttpContext.Response.Write("<br><br><br>");
+            HttpContext.Response.Write(Server.HtmlEncode("<table border='1' bgColor='#ffffff' " +
+              "borderColor='#000000' cellSpacing='0' cellPadding='0' " +
+              "style='font-size:10.0pt; font-family:Calibri; background:white;'> <tr>"));
+            int columnscount = dt.Columns.Count;
+
+            for (int j = 0; j < columnscount; j++)
+            {      //write in new column
+                HttpContext.Response.Write("<td>");
+                //Get column headers  and make it as bold in excel columns
+                HttpContext.Response.Write("<b>");
+                HttpContext.Response.Write(Server.HtmlEncode(dt.Columns[j].ColumnName.ToString()));
+                HttpContext.Response.Write("</b>");
+                HttpContext.Response.Write("</td>");
+            }
+            HttpContext.Response.Write("</tr>");
+
+            foreach (DataRow row in dt.Rows)
+            {//write in new row
+                HttpContext.Response.Write("<tr>");
+                for (int i = 0; i < dt.Columns.Count; i++)
+                {
+                    HttpContext.Response.Write("<td>");
+                    HttpContext.Response.Write(Server.HtmlEncode(row[i].ToString()));
+                    HttpContext.Response.Write("</td>");
+                }
+                HttpContext.Response.Write("</tr>");
+            }
+            HttpContext.Response.Write("</table>");
+            HttpContext.Response.Write("</font>");
+            HttpContext.Response.Flush();
+            HttpContext.Response.End();
+        }
+
+        #endregion
+
+        #region  --------------------- TM Canvas -------------------------------
+
+        /// <summary>
+        /// Action : Open TM Canvas View. Mehod : Get
+        /// </summary>
+        ///<param name="id">Contain MenuMDID and MenuName in encrypted from</param>
+        [HttpGet]
+        public ActionResult TMCanvas(string id)
+        {
+            TMCanvas objBO = new TMCanvas();
+            try
+            {
+                ControlsQueryString = string.Empty;
+                if (TempData["ReturnQueryStringData"] != null)
+                {
+                    ControlsQueryString = TempData["ReturnQueryStringData"].ToString();
+                    objBO.ClientIDs = CommonFunctions.SplitandEncrypt(Querystring.QueryStrData("ClientIDs", ControlsQueryString));
+                    objBO.TMIDs = CommonFunctions.SplitandEncrypt(Querystring.QueryStrData("TMIDs", ControlsQueryString));
+                    objBO.MenuMDID = Querystring.QueryStrData("MenuMDID", ControlsQueryString);
+                    ViewBag.MenuMDID = Querystring.QueryStrData("MenuMDID", ControlsQueryString);
+                }
+                else
+                {
+                    ViewBag.MenuMDID = Querystring.Query("MenuMDID");
+                }
+                ViewBag.Message = "";
+                return View(objBO);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation, please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "TMCanvas", ex.ToString());
+                return View();
+            }
+        }
+
+        /// <summary>
+        /// Used to Load the TM Canvas table by ClientID and TMIDs
+        /// </summary>  
+        /// <param name="ClientID"> AuditSCMID (Single) </param>    
+        /// <param name="TMIDs"> TMIDs (Single or multiple) </param>    
+        public JsonResult LoadTMCanvas(string ClientID, string TMIDs)
+        {
+            ClientID = CommonFunctions.SplitandDecrypt(ClientID);
+            string Result = string.Empty;
+            Dalwat da = new Dalwat();
+            ds = new DataSet();
+            ds = da.FetchTMCanvas(Convert.ToInt64(Session["AccessType"].ToString()), Session["GlobalUserID"].ToString(), ClientID, TMIDs);
+            DataTable dtCanvas = ds.Tables[0];
+            dtCanvas.Columns.Add("ID");
+            for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+            {
+                DataRow dr = dtCanvas.Rows[i];
+                dr["ID"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["LoginMID"].ToString());
+            }
+            Result = CommonFunctions.ListToString(ds);
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Used to Load the TM Canvas Activity details table by ClientID and IMIDs
+        /// </summary>  
+        /// <param name="LoginMID"> LoginMID</param>    
+        public JsonResult LoadAgentActivityDetails(string LoginMID)
+        {
+            LoginMID = CommonFunctions.SplitandDecrypt(LoginMID);
+            string Result = string.Empty;
+            Dalwat da = new Dalwat();
+            ds = new DataSet();
+            ds = da.GetAgentActivityDetails(LoginMID);
+            DataTable dtCanvas = ds.Tables[0];
+            dtCanvas.Columns.Add("ID");
+            for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+            {
+                DataRow dr = dtCanvas.Rows[i];
+                dr["ID"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["StatusDID"].ToString());
+            }
+            Result = CommonFunctions.ListToString(ds);
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Redirect TM Canvas. Mehod : Post
+        /// </summary>
+        ///<param name="fc">FormCollection object</param>
+        [HttpPost]
+        public ActionResult TMCanvas(FormCollection fc)
+        {
+            try
+            {
+                string ClientIDs = EncodeDecode.Decode(fc["ClientIDs"].ToString());
+                string TMIDs = fc["TMIDs"].ToString();
+                string MenuMDID = fc["MenuMDID"].ToString();
+                string QueryStringData = EncodeDecode.Encode("ClientIDs=" + ClientIDs + "&TMIDs=" + TMIDs + "&MenuMDID=" + MenuMDID + "");
+                if (TempData["QueryStringData"] == null)
+                {
+                    TempData["QueryStringData"] = QueryStringData;
+                }
+                else
+                {
+                    TempData["QueryStringData"] = null;
+                }
+                ViewBag.Message = "";
+                return Redirect(WebConfigurationManager.AppSettings["AppName"] + Path.DirectorySeparatorChar + "WAT/TMCanvasHistory");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation, please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "TMCanvas", ex.ToString());
+                return View();
+            }
+        }
+        #endregion
+
+        #region  --------------------- TM Canvas History-------------------------------
+
+        /// <summary>
+        /// Action : Open TM Canvas history View. Mehod : Get
+        /// </summary>
+        [HttpGet]
+        public ActionResult TMCanvasHistory()
+        {
+            try
+            {
+                TMCanvasHistory model = new TMCanvasHistory();
+                string QueryStringData = string.Empty;
+                if (TempData["QueryStringData"] != null)
+                {
+                    QueryStringData = TempData["QueryStringData"].ToString();
+                    model.ClientID = Querystring.QueryStrData("ClientIDs", QueryStringData);
+                    ViewBag.MenuMDID = Querystring.QueryStrData("MenuMDID", QueryStringData);
+                    model.MenuMDID = ViewBag.MenuMDID;
+                    ViewBag.Post = "0";
+                }
+                ViewBag.Message = "";
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation, please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "TMCanvasHistory", ex.ToString());
+                return View();
+            }
+        }
+
+        /// <summary>
+        /// Fetch CDM by client
+        /// </summary>
+        /// <param name="ClientIDs"></param>
+        /// <returns></returns>
+        public JsonResult FetchCDM(string ClientIDs)
+        {
+            string Result = string.Empty;
+            Dalwat daObj = new Dalwat();
+            DataSet dsCDM = new DataSet();
+            DataTable dtCDM = new DataTable();
+            if (Convert.ToInt16(Session["AccessType"].ToString()) >= 3)
+            {
+                ds = daObj.FillDropDown("CDM", Session["AccessType"].ToString(), ClientIDs, Session["GlobalUserID"].ToString());
+                dtCDM.Columns.Add("ID");
+                dtCDM.Columns.Add("Name");
+                for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+                {
+                    DataRow dr = dtCDM.NewRow();
+                    dr["ID"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["ID"].ToString());
+                    dr["Name"] = ds.Tables[0].Rows[i]["Name"].ToString();
+                    dtCDM.Rows.Add(dr);
+                }
+                dsCDM.Tables.Add(dtCDM);
+            }
+            Result = CommonFunctions.ListToString(dsCDM);
+
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Fetch TM by client
+        /// </summary>
+        /// <param name="ClientIDs"></param>
+        /// <returns></returns>
+        public JsonResult FetchTMsByCDM(string ClientIDs, string CDMIDs)
+        {
+            string Result = string.Empty;
+            string CDMIds = string.Empty;
+            Dalwat daObj = new Dalwat();
+            DataSet dsTM = new DataSet();
+            DataTable dtTM = new DataTable();
+            CDMIds = CommonFunctions.SplitandDecrypt(CDMIDs);
+            if (Convert.ToInt16(Session["AccessType"].ToString()) == 2)
+            {
+
+                ds = daObj.FillDropDown("TM", Session["AccessType"].ToString(), ClientIDs, Session["GlobalUserID"].ToString(), CDMIds);
+                dtTM.Columns.Add("ID");
+                dtTM.Columns.Add("Name");
+                for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+                {
+                    DataRow dr = dtTM.NewRow();
+                    dr["ID"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["ID"].ToString());
+                    dr["Name"] = ds.Tables[0].Rows[i]["Name"].ToString();
+                    dtTM.Rows.Add(dr);
+                }
+                dsTM.Tables.Add(dtTM);
+            }
+            Result = CommonFunctions.ListToString(dsTM);
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Fetch TM by client
+        /// </summary>
+        /// <param name="ClientIDs"></param>
+        /// <returns></returns>
+        public JsonResult FetchAgent(string ClientIDs, string TMIDs)
+        {
+            string Result = string.Empty;
+            string TMIds = string.Empty;
+            Dalwat daObj = new Dalwat();
+            DataSet dsAgent = new DataSet();
+            DataTable dtAgent = new DataTable();
+            TMIds = CommonFunctions.SplitandDecrypt(TMIDs);
+            if (Convert.ToInt16(Session["AccessType"].ToString()) == 1)
+            {
+                ds = daObj.FillDropDown("Agent", Session["AccessType"].ToString(), ClientIDs, Session["GlobalUserID"].ToString(), TMIds);
+                dtAgent.Columns.Add("ID");
+                dtAgent.Columns.Add("Name");
+                for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+                {
+                    DataRow dr = dtAgent.NewRow();
+                    dr["ID"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["ID"].ToString());
+                    dr["Name"] = ds.Tables[0].Rows[i]["Name"].ToString();
+                    dtAgent.Rows.Add(dr);
+                }
+                dsAgent.Tables.Add(dtAgent);
+            }
+            Result = CommonFunctions.ListToString(dsAgent);
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public ActionResult TMCanvasHistory(Prism.Model.WAT.TMCanvasHistory model, FormCollection form, string back, string search)
+        {
+            try
+            {
+                ViewBag.Message = "";
+                if (back != null)
+                {
+                    string QueryStringData = EncodeDecode.Encode("MenuMDID=" + model.MenuMDID + "&ClientIDs="
+                                                + form["ClientID"].ToString() + "&TMIDs="
+                                                + form["TMIDs"].ToString()
+                                                );
+                    if (TempData["ReturnQueryStringData"] == null)
+                    {
+                        TempData["ReturnQueryStringData"] = QueryStringData;
+                    }
+                    return Redirect(WebConfigurationManager.AppSettings["AppName"] + Path.DirectorySeparatorChar + "WAT/TMCanvas/ex1");
+
+                }
+                else if (search != null)
+                {
+                    ViewBag.Post = "1";
+                    Prism.Model.Reports.ReportsQms rptmodel = new Prism.Model.Reports.ReportsQms();
+                    LoadReport(model, rptmodel);
+                    rptmodel.Settings = new ControlSettings { ShowToolBar = false };
+                    rptmodel.HtmlAttrib = new { Width = "100%", style = "border: none;min-height: 500px;" };
+                    ModelState.Remove("DateFrom");
+                    model.DateFrom = (model.DateFrom != null) ? Convert.ToDateTime(FormatDate(model.DateFrom)).ToString("MM/dd/yyyy") : null;
+                    ViewBag.ReportModel = rptmodel;
+                    return View(model);
+                }
+                else
+                {
+                    return View(model);
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation, please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "TMCanvasHistory", ex.ToString());
+                return View();
+            }
+        }
+
+
+        /// <summary>
+        /// Used to set report page and report parameter in WAT Canvas History Report
+        /// </summary>
+        /// <param name="rpt"> object of type WATCanvasHistory</param>  
+        /// <param name="rptmodel"> object of type Reports</param> 
+        private void LoadReport(Prism.Model.WAT.TMCanvasHistory rpt, Prism.Model.Reports.ReportsQms rptmodel)
+        {
+            ds = new DataSet();
+            reports = new DalReports();
+            rptmodel.ReportPage = "WAT_HistoricalCanvasReport";
+            rptmodel.ReportParam = ReportParamList(rpt);
+        }
+
+
+        /// <summary>
+        /// Used to add report's parameter list in WAT CanvasHistory report
+        /// </summary>
+        /// <param name="rpt"> object of type WATCanvasHistory</param>  
+        /// <param name="rptmodel"> object of type Reports</param> 
+        private List<KeyValuePair<string, object>> ReportParamList(Prism.Model.WAT.TMCanvasHistory rpt)
+        {
+            List<KeyValuePair<string, object>> ReportParm = new List<KeyValuePair<string, object>>();
+            string sTMIDs = (rpt.TMIDs == null || rpt.TMIDs == "0") ? "" : EncodeDecode.Decode(rpt.TMIDs.ToString());
+            if ((sTMIDs == "99999") || (sTMIDs == "0"))
+            {
+                sTMIDs = "";
+            }
+            if (rpt.DateFrom != "")
+            {
+                ReportParm.Add(new KeyValuePair<string, object>("StartDate", FormatDate(rpt.DateFrom.ToString())));
+            }
+            else
+            {
+                ReportParm.Add(new KeyValuePair<string, object>("StartDate", ""));
+            }
+            ReportParm.Add(new KeyValuePair<string, object>("CDMIDs", (CommonFunctions.SplitandDecrypt(rpt.CDMIDs) == null) ? "" : CommonFunctions.SplitandDecrypt(rpt.CDMIDs).ToString()));
+            ReportParm.Add(new KeyValuePair<string, object>("TMIDs", sTMIDs == null ? "" : sTMIDs));
+            ReportParm.Add(new KeyValuePair<string, object>("agentids", (CommonFunctions.SplitandDecrypt(rpt.AgentIDs) == null) ? "" : CommonFunctions.SplitandDecrypt(rpt.AgentIDs).ToString()));
+            ReportParm.Add(new KeyValuePair<string, object>("Parameter", ""));
+            ReportParm.Add(new KeyValuePair<string, object>("LoginMID", Session["LoginMID"].ToString()));
+            return ReportParm;
+        }
+
+        #endregion
+
+
+        #region----------- Employee work Assignment
+
+
+        /// <summary>
+        /// Action : Open Employee Work Assignment View. Mehod : Get
+        /// </summary>
+        ///<param name="id">Contain MenuMDID and MenuName in encrypted from</param>
+        [HttpGet]
+        public ActionResult EmployeeWorkAssignment(string id)
+        {
+            EmployeeWorkAssignment objBO = new EmployeeWorkAssignment();
+            try
+            {
+                ViewBag.MenuMDID = Querystring.Query("MenuMDID");
+                ViewBag.Message = "";
+                objBO.LoginMID = Session["LoginMID"].ToString();
+                objBO.AccessType = "5";
+                objBO.Host = Session["Host"].ToString();
+                return View(objBO);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation, please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "EmployeeWorkAssignment", ex.ToString());
+                return View();
+            }
+        }
+
+        /// <summary>
+        /// Get Employee Work Assignment Details based on the AgentID
+        /// </summary>
+        /// <param name="StartDate"></param>
+        /// <param name="EndDate"></param>
+        /// <param name="AgentID"></param>
+        /// <returns>List of FreeText as JsonResult</returns>
+        public JsonResult LoadEmployeeWorkAssignment(string StartDate, string EndDate, string AgentID)
+        {
+            string Result = string.Empty;
+            WatModel objBO = new WatModel();
+            DalwatAgent objDalWAT = new DalwatAgent();
+            objBO.StartDate = FormatDate(StartDate);
+            objBO.EndDate = FormatDate(EndDate);
+            objBO.LoginMID = CommonFunctions.SplitandDecrypt(AgentID);
+            ds = objDalWAT.GetAgentTaskDetails(objBO);
+            if (ds != null)
+            {
+                Result = CommonFunctions.ListToString(ds);
+            }
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+
+        /// <summary>
+        /// Updates the Agent Tasks Details
+        /// </summary>
+        /// <param name="LoginMID">LoginMID of the agent</param>
+        /// <param name="GlobalUserID">GlobalUserID of the agent</param>
+        /// /// <param name="WorkGMID">WorkGMID of the task</param>
+        /// /// <param name="WorkDMID">WorkDMID of the task</param>
+        /// /// <param name="WorkIMID">WorkIMID of the task</param>
+        /// /// <param name="WorkReceived">Work Received Count</param>
+        /// /// <param name="Host">HostName</param>
+        /// <returns></returns>
+        public JsonResult InsertEmployeeWorkAssignment(string LoginMID, string GlobalUserID, string WorkGMID, string WorkDMID, string WorkIMID, string WorkReceived, string Host)
+        {
+            Int64 Result = 0;
+            WatModel objBO = new WatModel();
+            DalwatAgent objDalWAT = new DalwatAgent();
+            objBO.LoginMID = EncodeDecode.Decode(LoginMID);
+            objBO.GlobalUserID = GlobalUserID;
+            string WorkGroup = EncodeDecode.Decode(WorkGMID);
+            objBO.WorkGMID = WorkGroup.Split('~').First();
+            objBO.CampaignID = WorkGroup.Split('~').Last();
+            objBO.WorkDMID = EncodeDecode.Decode(WorkDMID);
+            objBO.WorkIMID = CommonFunctions.SplitandDecrypt(WorkIMID.TrimEnd(','));
+            objBO.WorkReceived = WorkReceived;
+            objBO.ActivityDate = DateTime.Now.ToString("yyyy-MM-dd");
+            objBO.StatusDID = "1";
+            objBO.Host = Host;
+            objBO.Createdby = Session["LoginMID"].ToString();
+            Result = objDalWAT.InsertAgentTasksEmployeeWorkAssignment(objBO);
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+
+        /// <summary>
+        /// Fetch TM Employee Work Assignment
+        /// </summary>
+        /// <param name="ClientIDs"></param>
+        /// <returns></returns>
+        public JsonResult FetchTMEmployeeWorkAssgn(string ClientIDs)
+        {
+            string Result = string.Empty;
+            Dalwat daObj = new Dalwat();
+            ds = daObj.FillDropDown(Parameter.GetTM.ToString(), Session[Parameter.AccessType.ToString()].ToString(), Session[Parameter.GlobalUserID.ToString()].ToString(), EncodeDecode.Decode(ClientIDs));
+            DataTable dt1 = new DataTable();
+            if (Convert.ToInt16(Session["AccessType"].ToString()) == 1)
+            {
+                if (ds != null && ds.Tables[0].Rows.Count > 0)
+                {
+                    DataRow[] dr = ds.Tables[0].Select("ID=" + Session[Parameter.GlobalUserID.ToString()].ToString());
+                    if (dr.Length > 0)
+                    {
+                        dt1 = dr.CopyToDataTable();
+                    }
+                }
+            }
+            else
+            {
+                dt1 = ds.Tables[0].Copy();
+            }
+            DataSet dsTM = new DataSet();
+            DataTable dtTM = new DataTable();
+            dtTM.Columns.Add("ID");
+            dtTM.Columns.Add("Name");
+            for (int i = 0; i < dt1.Rows.Count; i++)
+            {
+                DataRow dr = dtTM.NewRow();
+                dr["ID"] = EncodeDecode.Encode(dt1.Rows[i]["ID"].ToString());
+                dr["Name"] = dt1.Rows[i]["Name"].ToString();
+                dtTM.Rows.Add(dr);
+            }
+            dsTM.Tables.Add(dtTM);
+            Result = CommonFunctions.ListToString(dsTM);
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Fetch Agent Employee Work Assignment
+        /// </summary>
+        /// <param name="ClientIDs"></param>
+        /// <param name="TMIDs"></param>
+        /// <returns></returns>
+        public JsonResult FetchAgentEmployeeWorkAssgn(string ClientIDs, string TMIDs)
+        {
+            string Result = string.Empty;
+            string ClientIds = string.Empty;
+            string TMIds = string.Empty;
+            Dalwat daObj = new Dalwat();
+            DataSet dsAgent = new DataSet();
+            DataTable dtAgent = new DataTable();
+            ClientIds = CommonFunctions.SplitandDecrypt(ClientIDs);
+            TMIds = CommonFunctions.SplitandDecrypt(TMIDs);
+            ds = daObj.FillDropDown("AgentForWAT", Session["AccessType"].ToString(), ClientIds, Session["GlobalUserID"].ToString(), TMIds);
+            dtAgent.Columns.Add("ID");
+            dtAgent.Columns.Add("Name");
+            for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+            {
+                DataRow dr = dtAgent.NewRow();
+                dr["ID"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["ID"].ToString());
+                dr["Name"] = ds.Tables[0].Rows[i]["Name"].ToString();
+                dtAgent.Rows.Add(dr);
+            }
+            dsAgent.Tables.Add(dtAgent);
+            Result = CommonFunctions.ListToString(dsAgent);
+
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+        /// <summary>
+        /// Used to Fetch WorkGroup dropdown
+        /// </summary>  
+        public JsonResult FetchWorkGroupsEmployeeWorkAssgn(string LoginMID, string AccessType)
+        {
+            string Result = string.Empty;
+            DalwatAgent da = new DalwatAgent();
+            ds = new DataSet();
+            DataSet dsWAT = new DataSet();
+            DataTable dtWAT = new DataTable();
+            ds = da.FillDropDown("WAT_WorkGroups", EncodeDecode.Decode(LoginMID), AccessType, Session["GlobalUserID"].ToString());
+            dtWAT.Columns.Add("ID");
+            dtWAT.Columns.Add("Name");
+            for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+            {
+                DataRow dr = dtWAT.NewRow();
+                dr["ID"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["WorkGMID"].ToString());
+                dr["Name"] = ds.Tables[0].Rows[i]["WorkGroupName"].ToString();
+                dtWAT.Rows.Add(dr);
+            }
+            dsWAT.Tables.Add(dtWAT);
+            Result = CommonFunctions.ListToString(dsWAT);
+
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Used to Fetch WorkDivisions dropdown based on WorkGroup
+        /// </summary>  
+        public JsonResult FetchWorkDivisionsEmployeeWorkAssgn(string LoginMID, string AccessType, string WorkGMID)
+        {
+            string Result = string.Empty;
+            DalwatAgent da = new DalwatAgent();
+            ds = new DataSet();
+            DataSet dsWAT = new DataSet();
+            DataTable dtWAT = new DataTable();
+            string WorkGMIDs = EncodeDecode.Decode(WorkGMID).Split('~')[0];
+            ds = da.FillDropDown("WAT_WorkDivisions", WorkGMIDs, EncodeDecode.Decode(LoginMID), AccessType);
+            dtWAT.Columns.Add("ID");
+            dtWAT.Columns.Add("Name");
+            for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+            {
+                DataRow dr = dtWAT.NewRow();
+                dr["ID"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["WorkDMID"].ToString());
+                dr["Name"] = ds.Tables[0].Rows[i]["WorkDivisionName"].ToString();
+                dtWAT.Rows.Add(dr);
+            }
+            dsWAT.Tables.Add(dtWAT);
+            Result = CommonFunctions.ListToString(dsWAT);
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Used to Fetch WorkItems dropdown based on WorkDivisions
+        /// </summary>  
+        public JsonResult FetchWorkItemsEmployeeWorkAssgn(string LoginMID, string AccessType, string WorkDMID)
+        {
+            string Result = string.Empty;
+            DalwatAgent da = new DalwatAgent();
+            ds = new DataSet();
+            DataSet dsWAT = new DataSet();
+            DataTable dtWAT = new DataTable();
+            ds = da.FillDropDown("WAT_WorkItems", EncodeDecode.Decode(WorkDMID), EncodeDecode.Decode(LoginMID), AccessType);
+            dtWAT.Columns.Add("ID");
+            dtWAT.Columns.Add("Name");
+            for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+            {
+                DataRow dr = dtWAT.NewRow();
+                dr["ID"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["WorkIMID"].ToString());
+                dr["Name"] = ds.Tables[0].Rows[i]["WorkItemName"].ToString();
+                dtWAT.Rows.Add(dr);
+            }
+            dsWAT.Tables.Add(dtWAT);
+            Result = CommonFunctions.ListToString(dsWAT);
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+        #endregion
+
+        #region  --------------------- Live TM Dashboard-------------------------------
+
+        [HttpGet]
+        public ActionResult LiveTMDashboard(string id, string id1, string id2, string id3, string id4)
+        {
+            try
+            {
+                if (id != null)
+                {
+                    if (Prism.Utility.Querystring.Query("MenuMDID", "id") == null)
+                    {
+                        return RedirectToAction("Login", "Login");
+                    }
+                    LiveTMDashboardModel objBO = new LiveTMDashboardModel();
+                    if (TempData["LiveTMDashboard"] != null)
+                    {
+                        objBO = (LiveTMDashboardModel)TempData["LiveTMDashboard"];
+                    }
+                    objBO.ClientIDs = CommonFunctions.SplitandEncrypt(EncodeDecode.Decode(objBO.ClientIDs));
+                    objBO.TMIDs = CommonFunctions.SplitandEncrypt(EncodeDecode.Decode(objBO.TMIDs));
+                    objBO.AgentIDs = CommonFunctions.SplitandEncrypt(EncodeDecode.Decode(objBO.AgentIDs));
+                    objBO.WorkItemIDs = CommonFunctions.SplitandEncrypt(EncodeDecode.Decode(objBO.WorkItemIDs));
+                    GetDataForLiveTMDashboard(objBO);
+                    return View(objBO);
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Login");
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ResultMessage = "Problem performing operation ,Please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "SSCDashboard", ex.ToString());
+                return View();
+            }
+        }
+
+        private void GetDataForLiveTMDashboard(LiveTMDashboardModel objBO)
+        {
+            Dalwat objDAL = new Dalwat();
+            //Dalqms objDALqms = new Dalqms();
+
+            //Prism.Model.Home.HrssDashboardModel abc = new Model.Home.HrssDashboardModel();
+            //abc.AccessType = "5";
+            //abc.Month = "";
+            //abc.Year = "";
+            //abc.ProjectID = "";
+            //abc.LoginMID = "22";
+
+            List<Prism.Model.WAT.AgentList> objTopList = new List<Prism.Model.WAT.AgentList>();
+            List<Prism.Model.WAT.AgentWiseCaseCountList> AgentWiseList = new List<Prism.Model.WAT.AgentWiseCaseCountList>();
+
+            // SSC DASHBOARD Data
+
+            //List<Prism.Model.Home.BottomFivePerformerList> objBottomList = new List<Prism.Model.Home.BottomFivePerformerList>();
+            //List<Prism.Model.Home.AuditFeedbackDetails> objAuditFeedbackDetails = new List<Prism.Model.Home.AuditFeedbackDetails>();
+            //List<Prism.Model.Home.EmployeewiseDefects> objEmployeewiseDefects = new List<Prism.Model.Home.EmployeewiseDefects>();
+            //List<Prism.Model.Home.DefectiveParameterName> objDefectiveParameterName = new List<Prism.Model.Home.DefectiveParameterName>();
+
+            try
+            {
+                objBO.LoginMID = Session["LoginMID"].ToString();
+                objBO.AccessType = Session["AccessType"].ToString();
+                DataSet ds = objDAL.LoadLiveTMDashboardForEasyjet(objBO);
+                //DataSet ds_ssc = objDALqms.LoadQMSHomeChartForHRSSDashboard(abc);
+
+
+                if (ds != null && ds.Tables.Count > 0)
+                {
+                    if (ds.Tables[0].Rows.Count > 0)
+                    {
+
+                        objBO.TotalUniqueCaseUploaded = ds.Tables[0].Rows[0]["TotalUniqueCaseUploaded"].ToString();
+                        objBO.CaseProcessed = ds.Tables[0].Rows[0]["CaseProcessed"].ToString();
+                        objBO.CasePending = ds.Tables[0].Rows[0]["CasePending"].ToString();
+                        objBO.CaseInProgress = ds.Tables[0].Rows[0]["CaseInProcess"].ToString();
+                        objBO.ProductiveAux = ds.Tables[0].Rows[0]["ProductiveAux"].ToString();
+                    }
+                }
+
+                string result = string.Empty;
+                result = CommonFunctions.ListToStringMultiple(ds.Tables[2]);
+                ViewBag.CampaignWiseAccuracyD3 = result;
+
+
+
+                //DataTable dtDefectsD3 = ds_ssc.Tables[11].Copy();
+                //if (ds_ssc.Tables[4].Rows.Count > 0)
+                //{
+                //    dtDefectsD3.Columns["Month1"].ColumnName = ds_ssc.Tables[4].Rows[0][0].ToString();
+                //    dtDefectsD3.Columns["Month2"].ColumnName = ds_ssc.Tables[4].Rows[1][0].ToString();
+                //    dtDefectsD3.Columns["Month3"].ColumnName = ds_ssc.Tables[4].Rows[2][0].ToString();
+                //}
+                //result = CommonFunctions.ListToStringMultiple(dtDefectsD3);
+                //ViewBag.DefectsD3 = result;
+
+                //DataTable dtSampleDetails = ds_ssc.Tables[8].Copy();
+                //if (ds_ssc.Tables[4].Rows.Count > 0)
+                //{
+                //    dtSampleDetails.Columns["Month1"].ColumnName = ds_ssc.Tables[4].Rows[0][0].ToString();
+                //    dtSampleDetails.Columns["Month2"].ColumnName = ds_ssc.Tables[4].Rows[1][0].ToString();
+                //    dtSampleDetails.Columns["Month3"].ColumnName = ds_ssc.Tables[4].Rows[2][0].ToString();
+                //}
+                //result = CommonFunctions.ListToStringMultiple(dtSampleDetails);
+                //ViewBag.SampledDetails = result;
+
+                //DataTable dtCriticalAccuracy = ds_ssc.Tables[6].Copy();
+                //if (dtSampleDetails.Rows.Count > 0)
+                //{
+                //    dtCriticalAccuracy.Columns.Remove("OrderNO");
+                //    dtCriticalAccuracy.Columns.Remove("Col1Name");
+                //    dtCriticalAccuracy.Columns.Remove("Col2Name");
+                //    dtCriticalAccuracy.Columns.Remove("Col3Name");
+                //    dtCriticalAccuracy.Columns["Col1Accuracy"].ColumnName = ds_ssc.Tables[6].Rows[0]["Col1Name"].ToString();
+                //    dtCriticalAccuracy.Columns["Col2Accuracy"].ColumnName = ds_ssc.Tables[6].Rows[0]["Col2Name"].ToString();
+                //    dtCriticalAccuracy.Columns["Col3Accuracy"].ColumnName = ds_ssc.Tables[6].Rows[0]["Col3Name"].ToString();
+                //}
+                //result = CommonFunctions.ListToStringMultiple(dtCriticalAccuracy);
+                //ViewBag.CriticalAccuracyDetail = result;
+
+
+                //DataTable dtNonCriticalDetail = ds_ssc.Tables[7].Copy();
+                //if (dtNonCriticalDetail.Rows.Count > 0)
+                //{
+                //    dtNonCriticalDetail.Columns.Remove("OrderNO");
+                //    dtNonCriticalDetail.Columns.Remove("Col1Name");
+                //    dtNonCriticalDetail.Columns["Col1Accuracy"].ColumnName = ds_ssc.Tables[7].Rows[0]["Col1Name"].ToString();
+                //}
+                //result = CommonFunctions.ListToStringMultiple(dtNonCriticalDetail);
+                //ViewBag.NonCriticalDetail = result;
+
+                //DataTable dtAuditDetail = ds_ssc.Tables[9].Copy();
+                //if (ds_ssc.Tables[4].Rows.Count > 0)
+                //{
+                //    dtAuditDetail.Columns["Month1"].ColumnName = ds_ssc.Tables[4].Rows[0][0].ToString();
+                //    dtAuditDetail.Columns["Month2"].ColumnName = ds_ssc.Tables[4].Rows[1][0].ToString();
+                //    dtAuditDetail.Columns["Month3"].ColumnName = ds_ssc.Tables[4].Rows[2][0].ToString();
+                //}
+                //result = CommonFunctions.ListToStringMultiple(dtAuditDetail);
+                //ViewBag.AuditDetail = result;
+
+                //DataTable dtSampledAudited = ds_ssc.Tables[5].Copy();
+                //if (dtSampledAudited.Rows.Count > 0)
+                //{
+                //    dtSampledAudited.Columns.Remove("OrderNO");
+                //    dtSampledAudited.Columns.Remove("MaxValue");
+                //}
+                //result = CommonFunctions.ListToStringMultiple(dtSampledAudited);
+                //ViewBag.SampledAuditedDetail = result;
+
+                //DataTable dtAccuracyTrend = ds_ssc.Tables[4].Copy();
+                //if (dtAccuracyTrend.Rows.Count > 0)
+                //{
+                //    dtAccuracyTrend.Columns.Remove("OrderNO");
+                //}
+                //result = CommonFunctions.ListToStringMultiple(dtAccuracyTrend);
+                //ViewBag.AccuracyTrendDetail = result;
+
+                //StringBuilder strXMLOverallAccuracy = new StringBuilder();
+                //StringBuilder strMonth = new StringBuilder();
+                //StringBuilder strOverallAccuracy = new StringBuilder();
+
+                //strXMLOverallAccuracy.Append("<graph animation='1' PBarLoadingText='1' XMLLoadingText='1' ChartNoDataText='1' border='0' showvalues='0' rotateNames='1' formatNumberScale='0' decimalPrecision='0' bgAlpha='0,0' CanvasBgAlpha='0,0' CanvasbaseAlpha='0,0' canvasBorderThickness='1' divLineColor='#c7cbcd' canvasBorderColor='#c7cbcd' yaxisminvalue='0' yaxismaxvalue='100' showAlternateHGridColor='0' showXAxisLine='0' showBorder='0' showCanvasBorder='0' plotBorderAlpha='10' usePlotGradientColor='0' legendBorderAlpha='0' legendShadow='0' showPlotBorder='1'>");
+                //strMonth.Append("<categories>");
+                //strOverallAccuracy.Append("<dataset seriesName='Accuracy Trend' color='#23B7E5' anchorbordercolor='#23B7E5' anchorbgcolor='#23B7E5' >");
+
+                //if (ds_ssc != null && ds_ssc.Tables.Count > 0)
+                //{
+                //    if (ds_ssc.Tables[0].Rows.Count > 0)
+                //    {
+                //        abc.Audited = ds_ssc.Tables[0].Rows[0]["Audited"].ToString();
+                //        abc.Sampled = ds_ssc.Tables[0].Rows[0]["Sampled"].ToString();
+                //        abc.OverAllAccuracy = ds_ssc.Tables[0].Rows[0]["OverAll Accuracy"].ToString() + "%";
+                //        abc.NonCriticalAccuracyText = ds_ssc.Tables[0].Rows[0]["NonCriticalFatalAccuracyText"].ToString();
+                //        abc.NonCriticalAccuracy = ds_ssc.Tables[0].Rows[0]["NonCriticalFatalAccuracy"].ToString() + "%";
+                //        abc.CriticalAccuracyText = ds_ssc.Tables[0].Rows[0]["CriticalFatalAccuracyText"].ToString();
+                //        abc.CriticalAccuracy = ds_ssc.Tables[0].Rows[0]["CriticalFatalAccuracy"].ToString() + "%";
+                //        abc.FeedBackRequired = ds_ssc.Tables[0].Rows[0]["FeedBackRequired"].ToString();
+                //        abc.FeedBackRequiredPercentage = ds_ssc.Tables[0].Rows[0]["FeedBackRequiredPercentage"].ToString() + "%";
+                //        abc.DefectiveTransaction = ds_ssc.Tables[0].Rows[0]["DefectiveTransaction"].ToString();
+                //        abc.DefectiveTransactionPercentage = ds_ssc.Tables[0].Rows[0]["DefectivePercentage"].ToString();
+                //        abc.FeedBackCompleted = ds_ssc.Tables[0].Rows[0]["FeedBackCompleted"].ToString();
+                //        abc.FeedBackCompletedPercentage = ds_ssc.Tables[0].Rows[0]["FeedBackCompletedPercentage"].ToString();
+                //        abc.FeedBackPending = ds_ssc.Tables[0].Rows[0]["FeedBackPending"].ToString();
+                //        abc.FeedBackPendingPercentage = ds_ssc.Tables[0].Rows[0]["FeedBackPendingPercentage"].ToString();
+                //    }
+
+
+                if (ds.Tables[1].Rows.Count > 0)
+                {
+                    for (int i = 0; i < ds.Tables[1].Rows.Count; i++)
+                    {
+                        AgentWiseCaseCountList obj1 = new AgentWiseCaseCountList();
+                        obj1.AgentName = ds.Tables[1].Rows[i]["AgentName"].ToString();
+                        obj1.TotalCaseCount = ds.Tables[1].Rows[i]["CaseCount"].ToString();
+                        AgentWiseList.Add(obj1);
+                        //AgentWiseData.Add(obj1);
+                    }
+                }
+                ViewBag.AgentWiseCount = AgentWiseList;
+                //ViewBag.AgentData = AgentWiseData;
+
+
+
+
+                //if (ds.Tables[1].Rows.Count > 0)
+                //{
+                //    AgentWiseData.Columns["AgentName"].ColumnName = ds.Tables[1].Rows[0][0].ToString();
+                //    AgentWiseData.Columns["CaseCount"].ColumnName = ds.Tables[1].Rows[1][0].ToString();
+
+                //}
+
+                
+
+                DataTable AgentWiseData = ds.Tables[1].Copy();
+                DataTable AgentWiseData1 = new DataTable();
+                result = CommonFunctions.ListToStringMultiple(AgentWiseData);
+                ViewBag.AgentWiseData = result;
+
+                
+
+
+
+                //if (ds_ssc.Tables[2].Rows.Count > 0)
+                //{
+                //    for (int j = 0; j < ds_ssc.Tables[2].Rows.Count; j++)
+                //    {
+                //        Prism.Model.Home.BottomFivePerformerList obj1 = new Model.Home.BottomFivePerformerList();
+                //        obj1.EmployeeName = ds_ssc.Tables[2].Rows[j]["EmployeeName"].ToString();
+                //        obj1.OverAllAccuracy = ds_ssc.Tables[2].Rows[j]["OverAll Accuracy"].ToString();
+                //        objBottomList.Add(obj1);
+                //    }
+                //}
+                //ViewBag.BottomFivePerformerList = objBottomList;
+                //if (ds_ssc.Tables[4].Rows.Count > 0)
+                //{
+                //    for (int i = 0; i < ds_ssc.Tables[4].Rows.Count; i++)
+                //    {
+                //        strMonth.Append("<category name='" + ds_ssc.Tables[4].Rows[i]["MonthYear"].ToString() + "' />");
+                //        strOverallAccuracy.Append("<set value='" + ds_ssc.Tables[4].Rows[i][2].ToString() + "' />");
+                //    }
+
+                //}
+
+                //if (ds_ssc.Tables[10].Rows.Count > 0)
+                //{
+                //    for (int i = 0; i < ds_ssc.Tables[10].Rows.Count; i++)
+                //    {
+                //        Prism.Model.Home.AuditFeedbackDetails obj1 = new Model.Home.AuditFeedbackDetails();
+                //        //AuditFeedbackDetails obj1 = new AuditFeedbackDetails();
+                //        obj1.MonthYear = ds_ssc.Tables[10].Rows[i]["MonthYear"].ToString();
+                //        obj1.TeamManager = ds_ssc.Tables[10].Rows[i]["TeamManager"].ToString();
+                //        obj1.Audited = ds_ssc.Tables[10].Rows[i]["Audited"].ToString();
+                //        obj1.FeedbackRequired = ds.Tables[10].Rows[i]["FeedbackRequired"].ToString();
+                //        obj1.FeedbackCompleted = ds.Tables[10].Rows[i]["FeedbackCompleted"].ToString();
+                //        obj1.FeedbackPending = ds.Tables[10].Rows[i]["FeedbackPending"].ToString();
+                //        obj1.FeedbackAgeing = ds.Tables[10].Rows[i]["FeedbackAgeing"].ToString();
+                //        obj1.ParentGlobalUserIDEncr = ds.Tables[10].Rows[i]["ParentGlobalUserIDEncr"].ToString();
+                //        obj1.ProjectIDEncr = ds.Tables[10].Rows[i]["ProjectIDEncr"].ToString();
+                //        obj1.DataMonthEncr = ds.Tables[10].Rows[i]["DataMonthEncr"].ToString();
+                //        obj1.DataYearEncr = ds.Tables[10].Rows[i]["DataYearEncr"].ToString();
+                //        objAuditFeedbackDetails.Add(obj1);
+                //    }
+                //}
+                //ViewBag.AuditFeedbackDetails = objAuditFeedbackDetails;
+
+                //if (ds.Tables[12].Rows.Count > 0)
+                //{
+                //    for (int i = 0; i < ds.Tables[12].Rows.Count; i++)
+                //    {
+                //        Prism.Model.Home.EmployeewiseDefects obj1 = new Model.Home.EmployeewiseDefects();
+                //      //  EmployeewiseDefects obj1 = new EmployeewiseDefects();
+                //        obj1.MonthYear = ds.Tables[12].Rows[i]["MonthYear"].ToString();
+                //        obj1.EmployeeName = ds.Tables[12].Rows[i]["EmployeeName"].ToString();
+                //        obj1.Defects = ds.Tables[12].Rows[i]["Defects"].ToString();
+                //        objEmployeewiseDefects.Add(obj1);
+                //    }
+                //}
+                //ViewBag.EmployeewiseDefects = objEmployeewiseDefects;
+                ////if (ds.Tables[14] != null && ds.Tables[14].Rows.Count > 0)
+                ////{
+                ////    for (int i = 0; i < ds.Tables[14].Rows.Count; i++)
+                ////    {
+                ////        Prism.Model.Home.DefectiveParameterName obj1 = new Model.Home.DefectiveParameterName();
+                ////     //   DefectiveParameterName obj1 = new DefectiveParameterName();
+                ////        obj1.ParameterID = ds.Tables[14].Rows[i]["PID"].ToString();
+                ////        obj1.ParameterName = ds.Tables[14].Rows[i]["ParameterName"].ToString();
+                ////        objDefectiveParameterName.Add(obj1);
+                ////    }
+                ////}
+                ////ViewBag.DefectiveParameterName = objDefectiveParameterName;
+                ////strMonth.Append("</categories>");
+                ////strOverallAccuracy.Append("</dataset>");
+                ////strXMLOverallAccuracy.Append(strMonth.ToString()).Append(strOverallAccuracy.ToString()).Append("</graph>");
+                ////ViewData["OverAll Accuracy"] = strXMLOverallAccuracy;
+
+                // }
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ResultMessage = "Problem performing operation ,Please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "GetQMSDataForSSCDashboard", ex.ToString());
+            }
+        }
+
+
+
+        /// <summary>
+        /// Bind Agent on the basis of Client or TM
+        /// </summary>
+        /// <param name="ClientIDs"></param>
+        /// <param name="TMIDs"></param>
+        /// <returns></returns>
+        public JsonResult BindWorkItemQueue(string ClientIDs)
+        {
+            TempData.Keep();
+            string Result = string.Empty;
+            reports = new DalReports();
+            string clientIds = CommonFunctions.SplitandDecrypt(ClientIDs);
+            DataSet dset = reports.FillDropDown_Insight("WorkItemQueue", Session["AccessType"].ToString(), clientIds, Session["GlobalUserID"].ToString(), "", "");
+            DataTable dtAgt = new DataTable();
+            dtAgt.Columns.Add("ID");
+            dtAgt.Columns.Add("Name");
+            for (int i = 0; i < dset.Tables[0].Rows.Count; i++)
+            {
+                DataRow dr = dtAgt.NewRow();
+                dr["ID"] = EncodeDecode.Encode(dset.Tables[0].Rows[i]["ID"].ToString());
+                dr["Name"] = dset.Tables[0].Rows[i]["Name"].ToString();
+                dtAgt.Rows.Add(dr);
+            }
+            Result = CommonFunctions.ListToStringMultiple(dtAgt);
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+
+        /// <summary>
+        /// Used to load year list
+        /// </summary> 
+        private void YearLoad()
+        {
+            const string Pathshared = "~/SharedResources/XML/YearsList.xml";
+            string xmlPath = Server.MapPath(Pathshared);
+            XmlDocument m_xDocument = new XmlDocument();
+            m_xDocument.Load(xmlPath);
+            var listItems = new List<SelectListItem>();
+            foreach (XmlNode node in m_xDocument.SelectNodes("//Table"))
+            {
+                listItems.Add(new SelectListItem
+                {
+                    Text = node.Attributes["Text"].Value,
+                    Value = node.Attributes["Value"].Value,
+                });
+            }
+            SelectList selectList = new SelectList(listItems, "Value", "Text");
+            ViewBag.YearList = selectList;
+        }
+        /// <summary>
+        /// This function is used to Load the project dropdown
+        /// </summary> 
+        /// 
+        /// <summary>
+        /// Used to load year list
+        /// </summary> 
+        private void YearLoadForTeamLeadPerformance()
+        {
+            const string Pathshared = "~/SharedResources/XML/YearsList.xml";
+            string xmlPath = Server.MapPath(Pathshared);
+            XmlDocument m_xDocument = new XmlDocument();
+            m_xDocument.Load(xmlPath);
+            var listItems = new List<SelectListItem>();
+            foreach (XmlNode node in m_xDocument.SelectNodes("//Table"))
+            {
+                listItems.Add(new SelectListItem
+                {
+                    Text = node.Attributes["Text"].Value,
+                    Value = EncodeDecode.Encode(node.Attributes["Value"].Value),
+                });
+            }
+            SelectList selectList = new SelectList(listItems, "Value", "Text");
+            ViewBag.YearList = selectList;
+        }
+        /// <summary>
+        /// This function is used to Load the project dropdown
+        /// </summary> 
+        private void LoadProject()
+        {
+            Dalqms dADD = new Dalqms();
+            try
+            {
+                DataSet ds = dADD.FetchProjectQMS(Convert.ToInt64(Session["AccessType"].ToString()), Session["LoginMID"].ToString(), "-1", 0);
+                List<Prism.Model.QMS.QmsProjects> objProjects = GetProjectsList(ds.Tables[0]);
+                ViewBag.ProjectsList = new SelectList(objProjects, "ProjectID", "ProjectName");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "Problem performing operation ,Please try later";
+                ErrorLogger.ErrorLog("QMS/LoadProject", "Project Load", ex.ToString());
+            }
+        }
+
+        ///<summary>
+        /// This function is used to return LOB on client Basis
+        /// </summary>
+        private void LoadLOB()
+        {
+            Dalqms dADD = new Dalqms();
+            DataSet ds = dADD.FillDropDown("LOB", Session["DefaultClientID"].ToString());
+            List<Prism.Model.Home.LobList> objLob = new List<Prism.Model.Home.LobList>();
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+                {
+                    Prism.Model.Home.LobList obj1 = new Prism.Model.Home.LobList();
+                    obj1.ID = EncodeDecode.Encode(ds.Tables[0].Rows[i]["ID"].ToString());
+                    obj1.Value = ds.Tables[0].Rows[i]["Name"].ToString();
+                    objLob.Add(obj1);
+                }
+            }
+            ViewBag.LOBList = new SelectList(objLob, "ID", "Value");
+        }
+        /// <summary>
+        /// Used to bind Projects into List QmsProjects
+        /// </summary>  
+        /// <param name="dt1"> Project Table </param>  
+        public List<Prism.Model.QMS.QmsProjects> GetProjectsList(DataTable dt1)
+        {
+            List<Prism.Model.QMS.QmsProjects> obj = new List<Prism.Model.QMS.QmsProjects>();
+            if (dt1.Rows.Count > 0)
+            {
+                for (int i = 0; i < dt1.Rows.Count; i++)
+                {
+                    Prism.Model.QMS.QmsProjects obj1 = new Prism.Model.QMS.QmsProjects();
+                    obj1.ProjectID = EncodeDecode.Encode(dt1.Rows[i]["ProjectID"].ToString());
+                    obj1.ProjectName = dt1.Rows[i]["ProjectName"].ToString();
+                    obj.Add(obj1);
+                }
+            }
+            return obj;
+        }
+        /// <summary>
+        /// Gets Dashboard For SSC Dashboard
+        /// </summary>
+        //private void GetDataForLiveTMDashboard(LiveTMDashboardModel objBO)
+        //{
+        //    Dalqms objDAL = new Dalqms();
+        //    List<Prism.Model.Home.TopFivePerformerList> objTopList = new List<Prism.Model.Home.TopFivePerformerList>();
+        //    List<Prism.Model.Home.BottomFivePerformerList> objBottomList = new List<Prism.Model.Home.BottomFivePerformerList>();
+        //    List<Prism.Model.Home.AuditFeedbackDetails> objAuditFeedbackDetails = new List<Prism.Model.Home.AuditFeedbackDetails>();
+        //    List<Prism.Model.Home.EmployeewiseDefects> objEmployeewiseDefects = new List<Prism.Model.Home.EmployeewiseDefects>();
+        //    List<Prism.Model.Home.DefectiveParameterName> objDefectiveParameterName = new List<Prism.Model.Home.DefectiveParameterName>();
+        //    try
+        //    {
+        //        objBO.LoginMID = Session["LoginMID"].ToString();
+        //        objBO.AccessType = Session["AccessType"].ToString();
+        //        DataSet ds = objDAL.LoadQMSHomeChartForSSCDashboard(objBO);
+        //        string result = string.Empty;
+        //        result = CommonFunctions.ListToStringMultiple(ds.Tables[3]);
+        //        ViewBag.CampaignWiseAccuracyD3 = result;
+        //        DataTable dtDefectsD3 = ds.Tables[11].Copy();
+        //        if (ds.Tables[4].Rows.Count > 0)
+        //        {
+        //            dtDefectsD3.Columns["Month1"].ColumnName = ds.Tables[4].Rows[0][0].ToString();
+        //            dtDefectsD3.Columns["Month2"].ColumnName = ds.Tables[4].Rows[1][0].ToString();
+        //            dtDefectsD3.Columns["Month3"].ColumnName = ds.Tables[4].Rows[2][0].ToString();
+        //        }
+        //        result = CommonFunctions.ListToStringMultiple(dtDefectsD3);
+        //        ViewBag.DefectsD3 = result;
+
+        //        DataTable dtSampleDetails = ds.Tables[8].Copy();
+        //        if (ds.Tables[4].Rows.Count > 0)
+        //        {
+        //            dtSampleDetails.Columns["Month1"].ColumnName = ds.Tables[4].Rows[0][0].ToString();
+        //            dtSampleDetails.Columns["Month2"].ColumnName = ds.Tables[4].Rows[1][0].ToString();
+        //            dtSampleDetails.Columns["Month3"].ColumnName = ds.Tables[4].Rows[2][0].ToString();
+        //        }
+        //        result = CommonFunctions.ListToStringMultiple(dtSampleDetails);
+        //        ViewBag.SampledDetails = result;
+
+        //        DataTable dtCriticalAccuracy = ds.Tables[6].Copy();
+        //        if (dtSampleDetails.Rows.Count > 0)
+        //        {
+        //            dtCriticalAccuracy.Columns.Remove("OrderNO");
+        //            dtCriticalAccuracy.Columns.Remove("Col1Name");
+        //            dtCriticalAccuracy.Columns.Remove("Col2Name");
+        //            dtCriticalAccuracy.Columns.Remove("Col3Name");
+        //            dtCriticalAccuracy.Columns["Col1Accuracy"].ColumnName = ds.Tables[6].Rows[0]["Col1Name"].ToString();
+        //            dtCriticalAccuracy.Columns["Col2Accuracy"].ColumnName = ds.Tables[6].Rows[0]["Col2Name"].ToString();
+        //            dtCriticalAccuracy.Columns["Col3Accuracy"].ColumnName = ds.Tables[6].Rows[0]["Col3Name"].ToString();
+        //        }
+        //        result = CommonFunctions.ListToStringMultiple(dtCriticalAccuracy);
+        //        ViewBag.CriticalAccuracyDetail = result;
+
+
+        //        DataTable dtNonCriticalDetail = ds.Tables[7].Copy();
+        //        if (dtNonCriticalDetail.Rows.Count > 0)
+        //        {
+        //            dtNonCriticalDetail.Columns.Remove("OrderNO");
+        //            dtNonCriticalDetail.Columns.Remove("Col1Name");
+        //            dtNonCriticalDetail.Columns["Col1Accuracy"].ColumnName = ds.Tables[7].Rows[0]["Col1Name"].ToString();
+        //        }
+        //        result = CommonFunctions.ListToStringMultiple(dtNonCriticalDetail);
+        //        ViewBag.NonCriticalDetail = result;
+
+        //        DataTable dtAuditDetail = ds.Tables[9].Copy();
+        //        if (ds.Tables[4].Rows.Count > 0)
+        //        {
+        //            dtAuditDetail.Columns["Month1"].ColumnName = ds.Tables[4].Rows[0][0].ToString();
+        //            dtAuditDetail.Columns["Month2"].ColumnName = ds.Tables[4].Rows[1][0].ToString();
+        //            dtAuditDetail.Columns["Month3"].ColumnName = ds.Tables[4].Rows[2][0].ToString();
+        //        }
+        //        result = CommonFunctions.ListToStringMultiple(dtAuditDetail);
+        //        ViewBag.AuditDetail = result;
+
+        //        DataTable dtSampledAudited = ds.Tables[5].Copy();
+        //        if (dtSampledAudited.Rows.Count > 0)
+        //        {
+        //            dtSampledAudited.Columns.Remove("OrderNO");
+        //            dtSampledAudited.Columns.Remove("MaxValue");
+        //        }
+        //        result = CommonFunctions.ListToStringMultiple(dtSampledAudited);
+        //        ViewBag.SampledAuditedDetail = result;
+
+        //        DataTable dtAccuracyTrend = ds.Tables[4].Copy();
+        //        if (dtAccuracyTrend.Rows.Count > 0)
+        //        {
+        //            dtAccuracyTrend.Columns.Remove("OrderNO");
+        //        }
+        //        result = CommonFunctions.ListToStringMultiple(dtAccuracyTrend);
+        //        ViewBag.AccuracyTrendDetail = result;
+
+        //        StringBuilder strXMLOverallAccuracy = new StringBuilder();
+        //        StringBuilder strMonth = new StringBuilder();
+        //        StringBuilder strOverallAccuracy = new StringBuilder();
+
+        //        strXMLOverallAccuracy.Append("<graph animation='1' PBarLoadingText='1' XMLLoadingText='1' ChartNoDataText='1' border='0' showvalues='0' rotateNames='1' formatNumberScale='0' decimalPrecision='0' bgAlpha='0,0' CanvasBgAlpha='0,0' CanvasbaseAlpha='0,0' canvasBorderThickness='1' divLineColor='#c7cbcd' canvasBorderColor='#c7cbcd' yaxisminvalue='0' yaxismaxvalue='100' showAlternateHGridColor='0' showXAxisLine='0' showBorder='0' showCanvasBorder='0' plotBorderAlpha='10' usePlotGradientColor='0' legendBorderAlpha='0' legendShadow='0' showPlotBorder='1'>");
+        //        strMonth.Append("<categories>");
+        //        strOverallAccuracy.Append("<dataset seriesName='Accuracy Trend' color='#23B7E5' anchorbordercolor='#23B7E5' anchorbgcolor='#23B7E5' >");
+
+        //        if (ds != null && ds.Tables.Count > 0)
+        //        {
+        //            if (ds.Tables[0].Rows.Count > 0)
+        //            {
+        //                objBO.Audited = ds.Tables[0].Rows[0]["Audited"].ToString();
+        //                objBO.Sampled = ds.Tables[0].Rows[0]["Sampled"].ToString();
+        //                objBO.OverAllAccuracy = ds.Tables[0].Rows[0]["OverAll Accuracy"].ToString() + "%";
+        //                objBO.NonCriticalAccuracyText = ds.Tables[0].Rows[0]["NonCriticalFatalAccuracyText"].ToString();
+        //                objBO.NonCriticalAccuracy = ds.Tables[0].Rows[0]["NonCriticalFatalAccuracy"].ToString() + "%";
+        //                objBO.CriticalAccuracyText = ds.Tables[0].Rows[0]["CriticalFatalAccuracyText"].ToString();
+        //                objBO.CriticalAccuracy = ds.Tables[0].Rows[0]["CriticalFatalAccuracy"].ToString() + "%";
+        //                objBO.FeedBackRequired = ds.Tables[0].Rows[0]["FeedBackRequired"].ToString();
+        //                objBO.FeedBackRequiredPercentage = ds.Tables[0].Rows[0]["FeedBackRequiredPercentage"].ToString() + "%";
+        //                objBO.DefectiveTransaction = ds.Tables[0].Rows[0]["DefectiveTransaction"].ToString();
+        //                objBO.DefectiveTransactionPercentage = ds.Tables[0].Rows[0]["DefectivePercentage"].ToString();
+        //                objBO.FeedBackCompleted = ds.Tables[0].Rows[0]["FeedBackCompleted"].ToString();
+        //                objBO.FeedBackCompletedPercentage = ds.Tables[0].Rows[0]["FeedBackCompletedPercentage"].ToString();
+        //                objBO.FeedBackPending = ds.Tables[0].Rows[0]["FeedBackPending"].ToString();
+        //                objBO.FeedBackPendingPercentage = ds.Tables[0].Rows[0]["FeedBackPendingPercentage"].ToString();
+        //            }
+
+        //            if (ds.Tables[1].Rows.Count > 0)
+        //            {
+        //                for (int i = 0; i < ds.Tables[1].Rows.Count; i++)
+        //                {
+        //                    TopFivePerformerList obj1 = new TopFivePerformerList();
+        //                    obj1.EmployeeName = ds.Tables[1].Rows[i]["EmployeeName"].ToString();
+        //                    obj1.OverAllAccuracy = ds.Tables[1].Rows[i]["OverAll Accuracy"].ToString();
+        //                    objTopList.Add(obj1);
+        //                }
+        //            }
+        //            ViewBag.TopFivePerformerList = objTopList;
+        //            if (ds.Tables[2].Rows.Count > 0)
+        //            {
+        //                for (int j = 0; j < ds.Tables[2].Rows.Count; j++)
+        //                {
+        //                    BottomFivePerformerList obj1 = new BottomFivePerformerList();
+        //                    obj1.EmployeeName = ds.Tables[2].Rows[j]["EmployeeName"].ToString();
+        //                    obj1.OverAllAccuracy = ds.Tables[2].Rows[j]["OverAll Accuracy"].ToString();
+        //                    objBottomList.Add(obj1);
+        //                }
+        //            }
+        //            ViewBag.BottomFivePerformerList = objBottomList;
+        //            if (ds.Tables[4].Rows.Count > 0)
+        //            {
+        //                for (int i = 0; i < ds.Tables[4].Rows.Count; i++)
+        //                {
+        //                    strMonth.Append("<category name='" + ds.Tables[4].Rows[i]["MonthYear"].ToString() + "' />");
+        //                    strOverallAccuracy.Append("<set value='" + ds.Tables[4].Rows[i][2].ToString() + "' />");
+        //                }
+
+        //            }
+
+        //            if (ds.Tables[10].Rows.Count > 0)
+        //            {
+        //                for (int i = 0; i < ds.Tables[10].Rows.Count; i++)
+        //                {
+        //                    AuditFeedbackDetails obj1 = new AuditFeedbackDetails();
+        //                    obj1.MonthYear = ds.Tables[10].Rows[i]["MonthYear"].ToString();
+        //                    obj1.TeamManager = ds.Tables[10].Rows[i]["TeamManager"].ToString();
+        //                    obj1.Audited = ds.Tables[10].Rows[i]["Audited"].ToString();
+        //                    obj1.FeedbackRequired = ds.Tables[10].Rows[i]["FeedbackRequired"].ToString();
+        //                    obj1.FeedbackCompleted = ds.Tables[10].Rows[i]["FeedbackCompleted"].ToString();
+        //                    obj1.FeedbackPending = ds.Tables[10].Rows[i]["FeedbackPending"].ToString();
+        //                    obj1.FeedbackAgeing = ds.Tables[10].Rows[i]["FeedbackAgeing"].ToString();
+        //                    obj1.ParentGlobalUserIDEncr = ds.Tables[10].Rows[i]["ParentGlobalUserIDEncr"].ToString();
+        //                    obj1.ProjectIDEncr = ds.Tables[10].Rows[i]["ProjectIDEncr"].ToString();
+        //                    obj1.DataMonthEncr = ds.Tables[10].Rows[i]["DataMonthEncr"].ToString();
+        //                    obj1.DataYearEncr = ds.Tables[10].Rows[i]["DataYearEncr"].ToString();
+        //                    objAuditFeedbackDetails.Add(obj1);
+        //                }
+        //            }
+        //            ViewBag.AuditFeedbackDetails = objAuditFeedbackDetails;
+
+        //            if (ds.Tables[12].Rows.Count > 0)
+        //            {
+        //                for (int i = 0; i < ds.Tables[12].Rows.Count; i++)
+        //                {
+        //                    EmployeewiseDefects obj1 = new EmployeewiseDefects();
+        //                    obj1.MonthYear = ds.Tables[12].Rows[i]["MonthYear"].ToString();
+        //                    obj1.EmployeeName = ds.Tables[12].Rows[i]["EmployeeName"].ToString();
+        //                    obj1.Defects = ds.Tables[12].Rows[i]["Defects"].ToString();
+        //                    objEmployeewiseDefects.Add(obj1);
+        //                }
+        //            }
+        //            ViewBag.EmployeewiseDefects = objEmployeewiseDefects;
+        //            if (ds.Tables[14] != null && ds.Tables[14].Rows.Count > 0)
+        //            {
+        //                for (int i = 0; i < ds.Tables[14].Rows.Count; i++)
+        //                {
+        //                    DefectiveParameterName obj1 = new DefectiveParameterName();
+        //                    obj1.ParameterID = ds.Tables[14].Rows[i]["PID"].ToString();
+        //                    obj1.ParameterName = ds.Tables[14].Rows[i]["ParameterName"].ToString();
+        //                    objDefectiveParameterName.Add(obj1);
+        //                }
+        //            }
+        //            ViewBag.DefectiveParameterName = objDefectiveParameterName;
+        //            strMonth.Append("</categories>");
+        //            strOverallAccuracy.Append("</dataset>");
+        //            strXMLOverallAccuracy.Append(strMonth.ToString()).Append(strOverallAccuracy.ToString()).Append("</graph>");
+        //            ViewData["OverAll Accuracy"] = strXMLOverallAccuracy;
+
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ViewBag.ResultMessage = "Problem performing operation ,Please try later";
+        //        ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "GetQMSDataForSSCDashboard", ex.ToString());
+        //    }
+        //}
+
+
+        /// <summary>
+        /// Load PendingFeedback Agent Ageing
+        /// </summary>    
+        /// <param name="ProjectID">Project ID</param> 
+        /// <param name="ParentGlobalUserID">TM GlobalUserID</param>
+        /// <param name="Month">Month</param>
+        /// <param name="Year">Year</param>
+        /// <param name="status">status</param>
+        public JsonResult LoadPendingFeedbackAgentAgeing(string ProjectID, string ParentGlobalUserID, string Month, string Year, string status)
+        {
+            string Result = string.Empty;
+            if (!string.IsNullOrEmpty(ProjectID))
+            {
+                ProjectID = CommonFunctions.SplitandDecrypt(ProjectID);
+            }
+            if (!string.IsNullOrEmpty(ParentGlobalUserID))
+            {
+                ParentGlobalUserID = CommonFunctions.SplitandDecrypt(ParentGlobalUserID);
+            }
+            if (!string.IsNullOrEmpty(Month))
+            {
+                Month = CommonFunctions.SplitandDecrypt(Month);
+            }
+            if (!string.IsNullOrEmpty(Year))
+            {
+                Year = CommonFunctions.SplitandDecrypt(Year);
+            }
+            Dalqms dADD = new Dalqms();
+            DataSet ds = dADD.LoadPendingFeedbackAgentAgeingData(ProjectID, ParentGlobalUserID, Month, Year, status, Session["LoginMID"].ToString());
+            if (ds != null)
+            {
+                Result = CommonFunctions.ListToString(ds);
+            }
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+
+        [HttpPost]
+        public ActionResult LiveTMDashboard(string id, LiveTMDashboardModel objBO)
+        {
+            try
+            {
+                if ((objBO.Month == null) || (objBO.Month == "Month"))
+                {
+                    objBO.Month = "";
+                }
+                if ((objBO.Year == null) || (objBO.Year == "Year"))
+                {
+                    objBO.Year = "";
+                }
+                TempData["LiveTMDashboard"] = objBO;
+                return RedirectToAction("LiveTMDashboard", "WAT");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ResultMessage = "Problem performing operation ,Please try later";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "WAT", ex.ToString());
+                return View(objBO);
+            }
+        }
+
+
+
+        #endregion
+
+
+    }
+}

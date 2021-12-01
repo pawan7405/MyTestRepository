@@ -1,0 +1,330 @@
+﻿@model Prism.Model.WAT.OutcomeControlMasterDetailConfiguration
+@{
+    ViewBag.Title = "OutcomeControlMasterDetailConfiguration";
+    Layout = "~/Views/Shared/MasterLayout.cshtml";
+}
+<div id="DisableDiv">
+</div>
+<input type="hidden" id="hidData" />
+<input type="hidden" id="hidMiscData" />
+<input type="hidden" id="hdnMiscData" />
+<input type="hidden" id="hdnData" />
+<input type="hidden" id="hdnType" />
+<input type="hidden" id="hdnChar" value="'" />
+<div class="container">
+    <div id="sidebar">
+        <div class="containerBox">
+            <nav class="quick_links">
+                <h2 runat="server" id="td_QuickLinks">
+                    Quick Links
+                </h2>
+                <ul class="puerto-menu">
+                    <div id="plcQuickLinks" class="content_8"></div>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <div class="main-content">
+        <a href="javascript:void(0)" data-toggle=".container" id="sidebar-toggle">
+            <img src="~/SharedResources/images/submenu_icon.png" alt="" />
+        </a>
+    </div>
+</div>
+<div class="bit-1" id="div1">
+    <div class="bodyBox">
+        <div class="contentBox">
+            <div class="report_typeBox">
+                <div class="report_head">
+                    <h2>Add/Edit OutCome Dynamic Column</h2>
+                    <ul class="filerBox">
+                        <li>
+                            <a class="hint--top" data-hint="Close" href="#">
+                                <button type="submit" id="btnCancelTop" class="close_icon icon-cross" onclick="return Goback();"></button>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="report_client marT10">
+                    <ul>
+
+                        <li>
+                            <label>
+                                Client
+                            </label>
+                            @Html.HiddenFor(m => m.ClientMID)
+                            <select id="ddlclient">
+                            </select>
+                        </li>
+
+                        <li>
+                            <label>
+                                Outcome Control
+                            </label>
+                            @Html.HiddenFor(m => m.DOCMID)
+                            <select id="ddloutcomecontrol">
+                            </select>
+                        </li>
+
+                        <li>
+                            <label>Lable Name</label>
+                            @Html.TextBoxFor(m => m.LabelName, new { maxlength = "200" })
+                        </li>
+
+
+                        <li>
+                            <label>Control Type</label>
+                            @Html.DropDownListFor(m => m.MiscType, new SelectListItem[]
+                                 {
+                                            new SelectListItem() { Text = "Select column type", Value = "NA" ,Selected=true},
+                                            new SelectListItem() { Text = "TextBox", Value = "0" },
+                                            new SelectListItem() { Text = "DropdownList", Value = "1"  },
+                                            new SelectListItem() { Text = "TextArea", Value = "2"  },
+                                            new SelectListItem() { Text = "RadioButton", Value = "7"  },
+                                            new SelectListItem() { Text = "Date", Value = "4" },
+                            new SelectListItem() { Text = "DateNTime", Value = "5" }
+                                 }, new { onchange = "return ShowHideDDLDiv(this);" })
+                        </li>
+
+                        <li>
+                            <label>
+                                DB Column Name
+                            </label>
+
+
+                            @Html.DropDownListFor(m => m.DBColumnName, new SelectListItem[]
+{
+   new SelectListItem() { Text = "Col1", Value = "Col1" },
+   new SelectListItem() { Text = "Col2", Value = "Col2" },
+   new SelectListItem() { Text = "Col3", Value = "Col3" },
+   new SelectListItem() { Text = "Col4", Value = "Col4" },
+   new SelectListItem() { Text = "Col5", Value = "Col5" },
+   new SelectListItem() { Text = "Col6", Value = "Col6" },
+   new SelectListItem() { Text = "Col7", Value = "Col7" },
+   new SelectListItem() { Text = "Col8", Value = "Col8" },
+   new SelectListItem() { Text = "Col9", Value = "Col9" },
+   new SelectListItem() { Text = "Col10", Value = "Col10" },
+   new SelectListItem() { Text = "Col11", Value = "Col11" },
+   new SelectListItem() { Text = "Col12", Value = "Col12" },
+   new SelectListItem() { Text = "Col13", Value = "Col13" },
+   new SelectListItem() { Text = "Col14", Value = "Col14" },
+   new SelectListItem() { Text = "Col15", Value = "Col15" },
+   new SelectListItem() { Text = "Col16", Value = "Col16" },
+   new SelectListItem() { Text = "Col17", Value = "Col17" },
+   new SelectListItem() { Text = "Col18", Value = "Col18" },
+   new SelectListItem() { Text = "Col19", Value = "Col19" },
+   new SelectListItem() { Text = "Col20", Value = "Col20" },
+
+},
+"-Select-")
+
+                        </li>
+
+
+
+
+
+                        <li>
+                            <label>
+                                Is Mandatory
+                            </label>
+                            @Html.CheckBoxFor(m => m.MiscISMandatory)
+                        </li>
+                        <li>
+                            <label>
+                                Max Length
+                            </label>
+                            @Html.TextBoxFor(m => m.Maxlength, new { maxlength = "5" })
+                        </li>
+
+                        <li>
+                            <label>
+                                Min Length
+                            </label>
+                            @Html.TextBoxFor(m => m.Minlength, new { maxlength = "5" })
+                        </li>
+
+                        <li id="MiscValidationVisibility" style="display:none">
+                            <label>
+                                Misc Validation
+                            </label>
+                            @Html.DropDownListFor(m => m.MiscValidation, new SelectListItem[]
+                            {
+                                       new SelectListItem() { Text = "Select", Value = "0" ,Selected=true},
+                                       new SelectListItem() { Text = "Only Numeric", Value = "1" },
+                                       new SelectListItem() { Text = "NumericWithDecimal", Value = "2"  },
+                                       new SelectListItem() { Text = "Email", Value = "3"  },
+                                       new SelectListItem() { Text = "Other", Value = "4"  },
+                            }, new { onchange = "$('#DefaultValue').val('');" })
+                            @* @Html.TextBoxFor(m => m.MiscValidation, new { maxlength = "200" })*@
+                        </li>
+
+                        <li id="Defaultfield" style="display:none">
+                            <label>Default Value</label>
+                            @Html.TextBoxFor(m => m.DefaultValue, new { maxlength = "30", onkeypress = "return ValiationType(this);" })
+                        </li>
+
+
+                        <li>
+                            <label>Order Id</label>
+                            @Html.TextBoxFor(m => m.OrderId, new { maxlength = "30", onkeypress = "return ValiationTypes(this);" })
+                        </li>
+                    </ul>
+                </div>
+
+
+
+
+            </div>
+            <div id="ddlDiv" class="report_typeBox marT10" style="display:none">
+                <div class="report_head">
+                    <h2>Define Data</h2>
+                </div>
+                <div class="report_client marT10" id="divFilter">
+                    <ul>
+                        <li>
+                            <label>
+                                Data value
+                            </label>
+                            @Html.TextBoxFor(m => m.DataValue, new { maxlength = "200" })
+                        </li>
+                        <li>
+                            <label>
+                                Is Dependent?
+                            </label>
+                            @Html.DropDownListFor(m => m.IsParent, new SelectListItem[]
+                                 {
+                                            new SelectListItem() { Text = "No", Value = "0" ,Selected=true },
+                                            new SelectListItem() { Text = "Yes", Value = "1"  },
+                                 }, new { onchange = "return LoadDependentColumn(this);" })
+                        </li>
+                        <li id="ParentColumnVisibility" style="display:none">
+
+                            <label>
+                                Parent Column
+                            </label>
+                            @Html.HiddenFor(m => m.ParentMiscMID)
+                            <select id="ddlParentMiscColumn" title="ParentMiscColumn" onchange="return LoadDependentData(this);"></select>
+                        </li>
+                        <li id="ParentDataVisibility" style="display:none">
+                            <label>
+                                Parent Data Value
+                            </label>
+                            @Html.HiddenFor(m => m.ParentMiscDDID)
+                            <select id="ddlParentMiscData" title="ParentMiscData"></select>
+                        </li>
+
+                        @*</ul>
+                            <ul>*@
+                        <li id="liParentSection" style="display:block">
+                            <label>Hide Parent Section</label>
+                            @Html.DropDownListFor(m => m.HideParentSection, new SelectListItem[]
+                               {
+                                          new SelectListItem() { Text = "No", Value = "0" ,Selected=true },
+
+                               }, new { onchange = "return HideParentSection(this);" })
+                        </li>
+                        <li id="liparentSectionDropdown" style="display:none">
+
+                            @Html.Label("Parent Section")
+                            @Html.Hidden("hdnParentSubSectionDropdown")
+                            <select id="ParentSubSectionDropdown" title="Parent Section List "></select>
+                        </li>
+                        @*</ul>
+                            <ul>*@
+                        <li id="liHideSubSection" style="display:block">
+                            <label>Hide Section</label>
+                            @Html.DropDownListFor(m => m.HideSubSection, new SelectListItem[]
+                               {
+                                          new SelectListItem() { Text = "No", Value = "0" ,Selected=true },
+
+                               }, new { onchange = "return HideSubSection(this);" })
+                        </li>
+                        <li id="liSubSectionDropdown" style="display:none">
+                            @Html.Label("Sub Section")
+                            @Html.Hidden("SubSectionDropdownIds")
+                            <select id="SubSectionDropdown" title="Sub Section List "></select>
+                        </li>
+                        @*</ul>
+                            <ul>*@
+                        <li id="liHideParameter" style="display:block">
+                            <label>Hide Parameter</label>
+
+                            @Html.DropDownListFor(m => m.HideParameter, new SelectListItem[]
+                               {
+                                          new SelectListItem() { Text = "No", Value = "0" ,Selected=true },
+                                          new SelectListItem() { Text = "Yes", Value = "1"  },
+                               }, new { onchange = "return HideParameter(this);" })
+                        </li>
+                        <li id="liHideParameterDropdown" style="display:none">
+                            @Html.Label("Parameter List")
+                            @Html.Hidden("HideParameterIds")
+                            <select id="HideParameterDropdown" title="Hide Parameter List"></select>
+                        </li>
+                        <li>
+                            <button type="button" id="btnAddSubmit" class="add_button icon-plus fl mar0 fr_m" onclick="return ValidateAdd();" value=""></button>
+                        </li>
+                    </ul>
+
+                </div>
+                <div class="report_client marB10 marT10">
+                    <div class="overflowBox4 marB10">
+                        <table id="tbl_Data" width="100%" cellspacing="1" cellpadding="0" border="0" class="gird1"></table>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="errorBox_outside" id="showHideErrorBox2">
+                <span id="td_Message"></span>
+                <input type="submit" id="btnSaveParameters" class="blue_button fr" onclick="return SaveDynamicColumns();" value="Save" />
+                <input type="button" id="btnEdit" style="display: none;" class="blue_button fr" onclick="return ValidateEdit();" value="Update" />
+                <input type="button" id="btnCancel" class="blue_button fr" style="display: none;" onclick="return CancelEdit();" value="Cancel" />
+            </div>
+            <div class="report_typeBox marT10 marB38">
+
+                <div class="report_grid marB10">
+                    @Html.HiddenFor(m => m.AuditSMID)
+                    @Html.HiddenFor(m => m.AuditSMIDEncr)
+                    @Html.HiddenFor(m => m.MiscMID)
+                    @Html.HiddenFor(m => m.DOCDID)
+                    <div class="overflowBox6">
+                        <table id="tbl_Data1" width="100%" cellspacing="1" cellpadding="0" border="0" class="gird1"></table>
+                    </div>
+                    <div class="Pager">
+                    </div>
+                </div>
+                <div class="errorBox" id="showHideErrorBox">
+
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+@section Scripts{
+    @Scripts.Render("~/SharedResources/JS/jsonpath.js")
+    @Scripts.Render("~/SharedResources/JS/jquery-ui.js")
+    @Scripts.Render("~/SharedResources/JS/jquery.multiselect.js")
+    @Scripts.Render("~/SharedResources/JS/Wat_OutcomeControlMasterDetailConfiguration.js")
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if (('@ViewBag.MenuMDID' != null) && ('@ViewBag.MenuMDID' != ""))
+                BindQuickLinks('@ViewBag.MenuMDID', '0');
+            $("#DuplicateValidation").val(0)
+        BindSingleSelectClient("Client", "", "");
+         //   LoadDynamicColumns();
+            LoadError('@ViewBag.ResultMessage');
+            $("#dvCloseResult").click(function (e) {
+                $("#showUpdateRole").animate({ height: 'toggle' });
+                $("#td_Message").html("")
+                return ('false');
+            });
+        });
+    </script>
+}
+
+

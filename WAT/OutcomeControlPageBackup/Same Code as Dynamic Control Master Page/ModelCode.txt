@@ -1,0 +1,63 @@
+public class OutcomeControlMasterDetailConfiguration
+    {
+        public OutcomeControlMasterDetailConfiguration()
+        {
+            AuditSCMID = "0";
+            AuditSMIDEncr = "XB8sqbXYA9s=";
+            MiscMID = "0";
+            DOCDID = "0";
+            IsParent = false;
+            MiscISMandatory = false;
+        }
+
+        public string DOCDID { get; set; }
+        public string DOCMID { get; set; }
+        public string ClientMID { get; set; }
+        public string DBColumnName { get; set; }
+        public string LabelName { get; set; }
+        public string ControlID { get; set; }
+        public string IsManadatory { get; set; }
+        public string ValidationType { get; set; }
+        public string Maxlength { get; set; }
+        public string Minlength { get; set; }
+        public bool FreezeStatus { get; set; }
+        public string OrderID { get; set; }
+        public string CreatedDateTime { get; set; }
+        public string CreatedBy { get; set; }
+        public string Host { get; set; }
+        public string MenuMDID { get; set; }
+        public string AddEdit { get; set; }
+        public string LoginMID { get; set; }
+        public string AuditSMID { get; set; }
+        public string MiscName { get; set; }
+        public string MiscType { get; set; }
+        public string MiscValidation { get; set; }
+        public string MiscLength { get; set; }
+        public string DefaultValue { get; set; }
+        public string DataValue { get; set; }
+        public string OrderId { get; set; }
+        public string ChildMiscMID { get; set; }
+        public bool IsParent { get; set; }
+        public string ParentMiscMID { get; set; }
+        public string ParentMiscDDID { get; set; }
+        public bool MiscISMandatory { get; set; }
+
+
+        public string DuplicateValidation { get; set; }
+
+        public string AccessType { get; set; }
+
+        public Int64 ErrorNumber { get; set; }
+        public string AuditSCMID { get; set; }
+        public string AuditSMIDEncr { get; set; }
+        public string MiscMID { get; set; }
+
+        public string HeaderLevel { get; set; }
+        public string HideParentSection { get; set; }
+        public string ParentSubSectionDropdown { get; set; }
+        public string HideSubSection { get; set; }
+        public string SubSectionDropdown { get; set; }
+        public string HideParameter { get; set; }
+        public string HideParameterDropdown { get; set; }
+
+    }

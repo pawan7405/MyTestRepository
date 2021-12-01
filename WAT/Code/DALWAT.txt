@@ -1,0 +1,193 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Collections;
+using System.Data;
+using System.Diagnostics;
+using Prism.Model.WAT;
+using Prism.Model;
+
+namespace Prism.DAL
+{
+    public class Dalwat : BaseDataAccess
+    {
+        #region "Constructor"
+        public Dalwat()
+        {
+            ObjModel = new WatModel();
+        }
+        #endregion
+
+        #region "Specialised Functions"
+
+        #region============ Employee Attendance ======================
+        /// <summary>
+        /// This is used to Get the Attendance details for WAT agents
+        /// </summary>
+        /// <param name="DE"></param>
+        /// <param name="ClientIDs"></param>
+        /// <returns></returns>
+        public DataSet BO_AttendanceDetails(WatEmployeeAttendance DE, string ClientIDs)
+        {
+            SqlParam.Clear();
+            ObjModel = DE;
+            SqlParamAdd("@AgentName", DbType.String, ((WatEmployeeAttendance)ObjModel).EmployeeName);
+            SqlParamAdd("@AccessLMID", DbType.String, ((WatEmployeeAttendance)ObjModel).AccessType);
+            SqlParamAdd("@DateFrom", DbType.String, ((WatEmployeeAttendance)ObjModel).DateFrom);
+            SqlParamAdd("@DateTO", DbType.String, ((WatEmployeeAttendance)ObjModel).DateTo);
+            SqlParamAdd("@GlobalUserID", DbType.String, ((WatEmployeeAttendance)ObjModel).GlobalUserID);
+            SqlParamAdd("@ParenGlobalUserID", DbType.String, ((WatEmployeeAttendance)ObjModel).TMIDs);
+            SqlParamAdd("@ClientID", DbType.String, ClientIDs);
+            return datasetFromDB("proc_WAT_FetchAttendanceDetails", true);
+        }
+        /// <summary>
+        /// This is used to save the Attendance Details for the agents
+        /// </summary>
+        /// <param name="DE"></param>
+        /// <returns></returns>
+        public DataSet SaveThurrockAttendanceDetail(WatEmployeeAttendance DE)
+        {
+            SqlParam.Clear();
+            ObjModel = DE;
+            SqlParamAdd("@xml", DbType.String, ((WatEmployeeAttendance)ObjModel).XML);
+            SqlParamAdd("@createdBy", DbType.String, ((WatEmployeeAttendance)ObjModel).CreatedBy);
+            SqlParamAdd("@host", DbType.String, ((WatEmployeeAttendance)ObjModel).Host);
+            return datasetFromDB("proc_WAT_SaveAttendanceDetail", true);
+        }
+
+        #endregion
+
+        #region============ Employee Attendance Upload ======================
+        /// <summary>
+        /// This is used to get the Employees Attendance
+        /// </summary>
+        /// <param name="LoginMID"></param>
+        /// <param name="AccessType"></param>
+        /// <returns></returns>
+        public DataSet GetEmployeeUplodedAttendance(Int64 LoginMID, Int32 AccessType)
+        {
+            SqlParam.Clear();
+            SqlParamAdd("@LoginMID", DbType.Int64, LoginMID);
+            SqlParamAdd("@AccessType", DbType.Int32, AccessType);
+            return datasetFromDB("proc_WAT_GetEUplodedAttendance", true);
+        }
+        /// <summary>
+        /// Import Employee record from csv into db 
+        /// </summary>
+        /// <param name="edu">object of type EmployeeDataUpload</param>
+        /// <returns></returns>
+        public Int64 EmployeeAttendanceFileUpload(EmployeeAttendanceUpload edu)
+        {
+            SqlParam.Clear();
+            SqlParamAdd("@ClientID", DbType.Int32, Convert.ToInt32(edu.ClientID));
+            SqlParamAdd("@FilePath", DbType.String, edu.FilePath);
+            SqlParamAdd("@FileName", DbType.String, edu.FileName);
+            SqlParamAdd("@FilePathSystem", DbType.String, edu.FilePathSystem);
+            SqlParamAdd("@ActualFileName", DbType.String, edu.ActualFileName);
+            SqlParamAdd("@UploadData", DbType.String, edu.UploadData);
+            SqlParamAdd("@Status", DbType.Int16, edu.Status);
+            SqlParamAdd("@UploadType", DbType.Int16, edu.UploadType);
+            SqlParamAdd("@CreatedBy", DbType.String, edu.CreatedBy);
+            SqlParamAdd("@HostName", DbType.String, edu.Host);
+            SqlParamAddOut("@ErrorNumber", DbType.Int64, 0, ParameterDirection.Output);
+            return ExecuteDBScalarCommand("proc_WAT_EmployeeAttendanceFileUpload", true);
+        }
+        /// <summary>
+        /// Fetch Template detail based on the parameter passed
+        /// </summary>
+        /// <param name="Type">Type of Template</param>
+        /// <param name="ClientID"></param>
+        /// <returns>Template Detail Data Dataset.</returns>
+        public DataSet FetchEAUTemplateDetail(string Type, string ClientID)
+        {
+
+            SqlParam.Clear();
+            SqlParamAdd("@Type", DbType.String, Type);
+            SqlParamAdd("@ClientID", DbType.String, ClientID);
+            return datasetFromDB("proc_EU_TemplateDetail", true);
+        }
+        /// <summary>
+        /// This is used to get the data for the Attendance Upload to be exported to excel.
+        /// </summary>
+        /// <param name="FileName"></param>
+        /// <param name="Status"></param>
+        /// <returns></returns>
+        public DataSet EAUDataExporttoExcel(string FileName, Int64 Status)
+        {
+            SqlParam.Clear();
+            SqlParamAdd("@FileUMID", DbType.String, FileName);
+            SqlParamAdd("@Status", DbType.Int64, Status);
+            return datasetFromDB("proc_WAT_Data_ExporttoExcel", true);
+        }
+
+        #endregion
+
+        #region============ TM Canvas ======================
+        /// <summary>
+        /// This is used to fetch the details of WAT Canvas for a TM
+        /// </summary>
+        /// <param name="AccessType"></param>
+        /// <param name="GlobalUserID"></param>
+        /// <param name="ClientID"></param>
+        /// <param name="TMIDs"></param>
+        /// <returns></returns>
+        public DataSet FetchTMCanvas(Int64 AccessType, string GlobalUserID, string ClientID, string TMIDs)
+        {
+            SqlParam.Clear();
+            SqlParamAdd("@TMGlobalUserID", DbType.String, TMIDs);
+            SqlParamAdd("@ClientID", DbType.String, ClientID);
+            SqlParamAdd("@GlobalUserID", DbType.String, GlobalUserID);
+            SqlParamAdd("@AccessType", DbType.Int64, AccessType);
+            return datasetFromDB("proc_WAT_TMCanvas", true);
+        }
+        /// <summary>
+        /// This is used to get the Agent Activity Details
+        /// </summary>
+        /// <param name="LoginMID"></param>
+        /// <returns></returns>
+        public DataSet GetAgentActivityDetails(string LoginMID)
+        {
+            SqlParam.Clear();
+            SqlParamAdd("@StartDate", DbType.String, "");
+            SqlParamAdd("@EndDate", DbType.String, "");
+            SqlParamAdd("@LoginMID", DbType.String, LoginMID);
+            return datasetFromDB("proc_WAT_GetAgentActivityDetails", true);
+        }
+
+        #endregion
+
+
+        #endregion
+
+        #region Activiy tracker FIFO Process
+        public Int64 ActivityTrackerDataFileUpload(DataUploadForActivityTracker edu)
+        {
+            SqlParam.Clear();
+            SqlParamAdd("@ClientID", DbType.Int32, Convert.ToInt32(edu.ClientID));
+            SqlParamAdd("@FilePath", DbType.String, edu.FilePath);
+            SqlParamAdd("@FileName", DbType.String, edu.FileName);
+            SqlParamAdd("@FilePathSystem", DbType.String, edu.FilePathSystem);
+            SqlParamAdd("@ActualFileName", DbType.String, edu.ActualFileName);
+            SqlParamAdd("@UploadData", DbType.String, edu.UploadData);
+            SqlParamAdd("@Status", DbType.Int16, edu.Status);
+            SqlParamAdd("@UploadType", DbType.Int16, edu.UploadType);
+            SqlParamAdd("@CreatedBy", DbType.String, edu.CreatedBy);
+            SqlParamAdd("@HostName", DbType.String, edu.Host);
+            SqlParamAddOut("@ErrorNumber", DbType.Int64, 0, ParameterDirection.Output);
+            return ExecuteDBScalarCommand("proc_Admin_ActivityTrackerFlightRefundDataFileUpload", true);
+        }
+
+
+        public DataSet GetActivityTrackerFileData(Int64 LoginMID, Int32 AccessType)
+        {
+            SqlParam.Clear();
+            SqlParamAdd("@LoginMID", DbType.Int64, LoginMID);
+            SqlParamAdd("@AccessType", DbType.Int32, AccessType);
+            return datasetFromDB("proc_Easyjet_GetActivityTracketDataList", true);
+        }
+
+
+        #endregion
+    }
+}

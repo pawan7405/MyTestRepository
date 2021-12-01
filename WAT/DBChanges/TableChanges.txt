@@ -1,0 +1,171 @@
+
+
+alter WAT_ActionStatusDetail_ALG table add  DataMTID bigint
+alter WAT_DataDetail_ALG table add DataMTID bigint
+ALTER TABLE WAT_WorkDivisionWorkItemDetail ADD UMID INT
+ALTER TABLE WAT_WorkDivisionWorkItemDetail ADD SectorsVisibility tinyint
+ALTER TABLE WAT_WorkDivisionWorkItemDetailLog ADD UMID INT
+ALTER TABLE WAT_WorkDivisionWorkItemDetailLog ADD SectorsVisibility tinyint
+
+
+USE [Prism_Datamart_MVC]
+GO
+
+ALTER TABLE [dbo].[WAT_DataMaster] DROP CONSTRAINT [DF__WAT_DataM__Dispo__0B8863CA]
+GO
+
+ALTER TABLE [dbo].[WAT_DataMaster] DROP CONSTRAINT [DF__WAT_DataM__Freez__0A943F91]
+GO
+
+/****** Object:  Table [dbo].[WAT_DataMaster]    Script Date: 9/27/2021 3:51:51 PM ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[WAT_DataMaster]') AND type in (N'U'))
+DROP TABLE [dbo].[WAT_DataMaster]
+GO
+
+/****** Object:  Table [dbo].[WAT_DataMaster]    Script Date: 9/27/2021 3:51:51 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[WAT_DataMaster](
+	[DataMTID] [bigint] IDENTITY(1,1) NOT NULL,
+	[ID] [bigint] NULL,
+	[DataUMID] [int] NULL,
+	[UMID] [int] NULL,
+	[Date] [datetime] NULL,
+	[PNR] [varchar](500) NULL,
+	[Para1] [varchar](1000) NULL,
+	[Para2] [varchar](1000) NULL,
+	[Para3] [varchar](1000) NULL,
+	[Para4] [varchar](1000) NULL,
+	[Para5] [varchar](1000) NULL,
+	[Para6] [varchar](1000) NULL,
+	[Para7] [varchar](1000) NULL,
+	[Para8] [varchar](1000) NULL,
+	[Para9] [varchar](1000) NULL,
+	[Para10] [varchar](1000) NULL,
+	[FreezeStatus] [tinyint] NULL,
+	[DispositionStatus] [tinyint] NULL,
+	[DispositionDate] [datetime] NULL,
+	[DispositionBy] [varchar](50) NULL,
+	[CreatedDateTime] [datetime] NULL,
+	[CreatedBy] [varchar](50) NULL,
+	[Host] [varchar](50) NULL
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[WAT_DataMaster] ADD  CONSTRAINT [DF__WAT_DataM__Freez__0A943F91]  DEFAULT ((0)) FOR [FreezeStatus]
+GO
+
+ALTER TABLE [dbo].[WAT_DataMaster] ADD  CONSTRAINT [DF__WAT_DataM__Dispo__0B8863CA]  DEFAULT ((0)) FOR [DispositionStatus]
+GO
+
+
+
+GO
+/****** Object:  Table [dbo].[UploadDataColumnMapping]    Script Date: 9/27/2021 4:08:27 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[UploadDataColumnMapping](
+	[UploadDataCMID] [int] IDENTITY(1,1) NOT NULL,
+	[UMID] [int] NULL,
+	[DBColumnName] [varchar](200) NULL,
+	[DataMDBColumnName] [varchar](200) NULL,
+	[IsVisibleLabelOnATScreen] [bit] NULL,
+	[LabelNameOnATScreen] [varchar](200) NULL,
+	[IsVisibleDataOnDisposition] [bit] NULL,
+	[DispositionColumnName] [varchar](200) NULL,
+	[ControlType] [int] NULL,
+	[FreezeStatus] [tinyint] NULL,
+	[CreatedDateTime] [datetime] NULL,
+	[CreatedBy] [varchar](50) NULL,
+	[Host] [varchar](50) NULL,
+	[UpdatedDateTime] [datetime] NULL,
+	[UpdatedBy] [varchar](50) NULL
+) ON [PRIMARY]
+GO
+SET IDENTITY_INSERT [dbo].[UploadDataColumnMapping] ON 
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1, 89, N'Date', N'Date', 1, N'Request Date', 0, N'', 0, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, CAST(N'2021-09-21T11:13:28.650' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (2, 89, N'Booking_Number', N'PNR', 1, N'PNR', 1, N'Col2,Col9', 0, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (3, 89, N'Category', N'Para1', 0, NULL, 0, NULL, NULL, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (4, 89, N'Description', N'Para2', 0, NULL, 0, NULL, NULL, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (5, 89, N'Flight_Key', N'Para3', 0, NULL, 0, NULL, NULL, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (6, 89, N'Action', N'Para4', 0, NULL, 0, NULL, NULL, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (7, 89, N'Booking_Language', N'Para5', 1, N'Language', 1, N'Col3', 0, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, CAST(N'2021-09-21T13:40:14.560' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (8, 90, N'Request_Date', N'Date', 1, N'Request Date', 0, N'', NULL, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (9, 90, N'PNR', N'PNR', 1, N'PNR', 1, N'Col2,Col9', 0, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, CAST(N'2021-09-09T12:53:19.753' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (10, 90, N'Customer_Email_Address', N'Para2', 1, N'Customer Email Address', 1, N'Col8', 0, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (11, 90, N'Language', N'Para5', 1, N'Language', 1, N'Col3', 0, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, CAST(N'2021-09-09T12:40:37.233' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (12, 90, N'PNR_Type', N'Para1', 0, N'', 0, N'', 0, 1, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, CAST(N'2021-09-23T14:30:22.283' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (13, 91, N'Date', N'Date', 1, N'Request Date', 0, NULL, NULL, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (14, 91, N'Booking_Number', N'PNR', 1, N'PNR', 1, N'Col2,Col9', 0, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, CAST(N'2021-09-09T12:38:53.557' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (15, 91, N'Category', N'Para1', 0, NULL, 0, NULL, NULL, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (16, 91, N'Description', N'Para2', 0, NULL, 0, NULL, NULL, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (17, 91, N'Flight_Key', N'Para3', 0, NULL, 0, NULL, NULL, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (18, 91, N'Action', N'Para4', 0, NULL, 0, NULL, NULL, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (19, 91, N'Booking_Language', N'Para5', 1, N'Language', 1, N'Col3', 0, 0, CAST(N'2021-08-20T00:00:00.000' AS DateTime), N'22', NULL, NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1013, 17, N'LeaveBalance', N'Para10', 0, N'', 0, NULL, NULL, 0, CAST(N'2021-08-31T18:17:16.500' AS DateTime), N'22', N'::1', CAST(N'2021-08-31T18:46:39.807' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1014, 17, N'EmpID', N'Para2', 0, N'', 0, NULL, NULL, 0, CAST(N'2021-08-31T21:01:38.237' AS DateTime), N'22', N'::1', NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1023, 17, N'LeaveBalance', N'Para9', 0, N'', 1, N'Col3', 0, 0, CAST(N'2021-09-06T14:43:08.493' AS DateTime), N'22', N'::1', NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1015, 18, N'EmpID', N'Para1', 0, N'', 1, N'Col11', 0, 0, CAST(N'2021-09-03T20:24:48.000' AS DateTime), N'22', N'::1', CAST(N'2021-09-06T15:42:13.727' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1006, 17, N'EmpID', N'PNR', 1, N'EmpID', 0, NULL, NULL, 1, CAST(N'2021-08-31T11:42:56.260' AS DateTime), N'22', N'::1', CAST(N'2021-08-31T17:03:32.413' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1007, 17, N'IncentiveAmt', N'Para1', 0, N'', 0, NULL, NULL, 0, CAST(N'2021-08-31T11:44:17.480' AS DateTime), N'22', N'::1', CAST(N'2021-08-31T18:47:04.180' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1008, 17, N'IncentiveAmt', N'Para2', 0, N'', 0, NULL, NULL, 1, CAST(N'2021-08-31T11:45:28.063' AS DateTime), N'22', N'::1', NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1011, 17, N'Date', N'Date', 1, N'Date', 0, NULL, NULL, 0, CAST(N'2021-08-31T14:00:55.487' AS DateTime), N'22', N'::1', CAST(N'2021-08-31T20:59:42.940' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1016, 18, N'AvayaID', N'Para3', 0, N'', 1, N'Col2', NULL, 0, CAST(N'2021-09-03T20:34:55.430' AS DateTime), N'22', N'::1', NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1012, 17, N'IncentiveAmt', N'Para4', 1, N'', 0, NULL, NULL, 1, CAST(N'2021-08-31T15:03:19.530' AS DateTime), N'22', N'::1', CAST(N'2021-08-31T17:17:06.440' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1017, 18, N'AHT', N'Para2', 0, N'', 0, N'', NULL, 0, CAST(N'2021-09-05T14:54:42.410' AS DateTime), N'22', N'::1', NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1018, 18, N'Client_Work_AUX', N'Para5', 0, N'', 1, N'Col7', 0, 0, CAST(N'2021-09-05T15:13:39.657' AS DateTime), N'22', N'::1', NULL, NULL)
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1019, 18, N'Email_AUX', N'Para5', 0, N'', 0, N'', 0, 0, CAST(N'2021-09-05T15:17:22.240' AS DateTime), N'22', N'::1', CAST(N'2021-09-05T21:51:19.363' AS DateTime), N'22')
+GO
+INSERT [dbo].[UploadDataColumnMapping] ([UploadDataCMID], [UMID], [DBColumnName], [DataMDBColumnName], [IsVisibleLabelOnATScreen], [LabelNameOnATScreen], [IsVisibleDataOnDisposition], [DispositionColumnName], [ControlType], [FreezeStatus], [CreatedDateTime], [CreatedBy], [Host], [UpdatedDateTime], [UpdatedBy]) VALUES (1024, 18, N'Target_AUX', N'Para9', 0, N'', 0, N'', 0, 0, CAST(N'2021-09-06T15:42:47.480' AS DateTime), N'22', N'::1', NULL, NULL)
+GO
+SET IDENTITY_INSERT [dbo].[UploadDataColumnMapping] OFF
+GO
+ALTER TABLE [dbo].[UploadDataColumnMapping] ADD  CONSTRAINT [DF__UploadDat__IsVis__06C3AEAD]  DEFAULT ((0)) FOR [IsVisibleLabelOnATScreen]
+GO
+ALTER TABLE [dbo].[UploadDataColumnMapping] ADD  CONSTRAINT [DF__UploadDat__IsVis__07B7D2E6]  DEFAULT ((0)) FOR [IsVisibleDataOnDisposition]
+GO
+ALTER TABLE [dbo].[UploadDataColumnMapping] ADD  CONSTRAINT [DF__UploadDat__Freez__08ABF71F]  DEFAULT ((0)) FOR [FreezeStatus]
+GO
+
+
+
+
+

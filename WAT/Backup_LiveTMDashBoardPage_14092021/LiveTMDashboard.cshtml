@@ -1,0 +1,372 @@
+﻿@model Prism.Model.WAT.LiveTMDashboardModel
+@{
+    ViewBag.Title = "Live Dashboard";
+    Layout = "~/Views/Shared/MasterLayout.cshtml";
+}
+@*@using Prism*@
+<div id="DisableDiv">
+
+</div>
+
+<div class="container">
+    <input type="hidden" id="PageHeading" runat="server" />
+    <input type="hidden" id="hdnData" />
+    <input type="hidden" id="hdnFilteredData" />
+    <input type="hidden" id="hdnFilteredRecordCount" />
+    <div id="sidebar">
+        <div class="containerBox">
+            <nav class="quick_links">
+                <h2 runat="server" id="td_QuickLinks">Message Broadcast</h2>
+                <ul class="puerto-menu">
+                    <marquee id="MarqueeData" width="100%" direction=up scrollamount="2">
+                        <div id="dvMarque" runat="server"></div>
+                    </marquee>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <div class="main-content">
+        <a href="javascript:void(0)" data-toggle=".container" id="sidebar-toggle">
+            <img src="~/SharedResources/images/submenu_icon.png" alt="" />
+        </a>
+    </div>
+</div>
+<div class="bodyBox body1">
+    <div class="report_typeBox marB38">
+        @using (Html.BeginForm("SSCDashboard", "Home"))
+        {
+            <input type="hidden" id="hidDate" value="@ViewBag.CurrentDate" />
+            <div class="report_head">
+                <h2 id="dvCampaignName">
+                    Snapshot
+                    @*@Model.ProjectName*@
+                </h2>
+                @*@Html.HiddenFor(m => m.ProjectName)*@
+                <h3 id="dvChooseFilters" onclick="HideShow2('showHideBox4');">
+                    <b class="icon-files-empty"></b>Choose Filters
+                </h3>
+                <div class="chart_types disN" id="showHideBox4">
+                    <div class="report_client filterDiv marT10">
+                        <ul class="bor_T">
+                            <li id="dvDaily">
+                                <label id="lbdt">
+                                    Date
+                                </label>
+                                <span class="k-datepicker">
+                                    <input type="hidden" runat="server" id="hidDateFrom" value="@ViewBag.DateFrom" />
+                                    @Html.TextBoxFor(m => m.DateFrom, new { onkeydown = "return false;" })
+                                </span><span class="k-datepicker">
+                                    <input type="hidden" runat="server" id="hidDateTo" value="@ViewBag.DateTo" />
+                                    @Html.TextBoxFor(m => m.DateTo, new { onkeydown = "return false;" })
+                                </span>
+                            </li>
+                            <li id="dvProject">
+                                <input type="hidden" id="hidProjectID" />
+                                <label>
+                                    Client
+                                </label>
+                                @Html.HiddenFor(m => m.ClientIDs)
+                                <select id="ddlClient" name="example" title="Client">
+                                </select>
+                            </li>
+
+                            <li id="DivCategory">
+                                <label>
+                                    Work Item/Queue
+                                </label>
+                                <span>
+                                    @Html.HiddenFor(m => m.WorkItemIDs)
+                                    <select id="ddlWorkItemQueue" name="example" title="WorkItemQueue">
+                                    </select>
+                                </span>
+                            </li>
+                            <li id="liLocation">
+                                <label>
+                                    Team Manager
+                                </label>
+                                @Html.HiddenFor(m => m.TMIDs)
+                                <select id="ddlTM" name="example" title="TM">
+                                </select>
+                            </li>
+                            <li id="liLocation">
+                                <label>
+                                    Agent
+                                </label>
+                                @Html.HiddenFor(m => m.AgentIDs)
+                                <select id="ddlAgent" name="example" title="AgentIDs">
+                                </select>
+                            </li>
+                            <div class="errorBox" id="showHideErrorBoxCampaign" style="display: none;">
+                                <span id="td_MessageCampaign"></span>
+                            </div>
+                            <li class="fr">
+                                <div id="dvCampaignsBtn" class="fr">
+                                    <input type="button" value="Close" class="blue_button fr" id="btnCloseFilters" onclick=" HideShow2('showHideBox4');" />
+                                    <input type="submit" value="Generate" class="blue_button marR10 fr" onclick="return LiveTMDashboard();" />
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="ssc-dashboard">
+                <div class="top-performer">
+                    <h2>
+                        Agent wise Case processed
+                    </h2>
+                    <div id="rb-grid" class="sscoverlaybox">
+                        <div>
+                            <a class="hint--top" data-hint="Top Performers" id="titlefav" href="#">
+                                <button type="button" class="iconfont-th-large-outline"></button>
+                            </a>
+                            @*<div class="rb-overlay">
+                                    <div class="chartpopup">
+                                        <h2>Total Sampled <b class="rb-close iconfont-cancel"></b></h2>
+                                        <span id="SampledDetailGraph" style="height: 410px;"></span>
+                                    </div>
+                                </div>*@
+                        </div>
+                    </div>
+                    <div class="overflowBox6">
+                        <table id="tbl1" width="100%" cellspacing="1" cellpadding="0" border="0" class="gird1">
+                            <tbody>
+                                <tr>
+                                    <th>
+                                        Agent Name
+                                    </th>
+                                    <th>
+                                        Case Count
+                                    </th>
+                                </tr>
+
+                                @{
+                                    if (ViewBag.AgentWiseCount != null)
+                                    {
+                                        foreach (Prism.Model.WAT.AgentWiseCaseCountList objTopFivePerformerList in ViewBag.AgentWiseCount)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @Html.Label(objTopFivePerformerList.AgentName)
+                                                </td>
+                                                <td align="center">
+                                                    @Html.LabelForModel(objTopFivePerformerList.TotalCaseCount)
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+
+                            </tbody>
+                        </table>
+
+
+                    </div>
+                </div>
+
+                <div class="graph-tmsla" id="CampaignWiseAccuracyGraph">
+                    @*TM Wise Performance*@
+
+                </div>
+                <div class="total-sampled">
+                    <h2>@Model.TotalUniqueCaseUploaded</h2>
+                    <span>Total Unique Case Uploaded</span>
+                    <div id="rb-grid" class="sscoverlaybox">
+                        <div>
+                            <a class="hint--top" data-hint="Details" id="titlefav" href="#">
+                                <button type="button" class="iconfont-th-large-outline"></button>
+                            </a>
+                            <div class="rb-overlay">
+                                <div class="chartpopup">
+                                    <h2>Total Case Uploaded <b class="iconfont-chart-area bl"></b></h2>
+                                    <span id="SampledDetailGraph" style="height: 410px;"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="feedback-required">
+                    <h2>@Model.CasePending </h2>
+                    <span>Case Not Processed</span>
+                    <div id="rb-grid" class="sscoverlaybox">
+                        <div>
+                            <a class="hint--top" data-hint="Details" id="titlefav" href="#">
+                                <button type="button" class="iconfont-th-large-outline bl"></button>
+                            </a>
+                            <div class="rb-overlay">
+                                <div class="chartpopup" style=" height: 430px;">
+                                    <h2>Case Not Processed <b class="rb-close iconfont-cancel"></b></h2>
+                                    <div class="report_grid marB10 gridDiv">
+                                        <div class="overflowBox6">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="total-audited">
+                    <h2>@Model.CaseProcessed</h2>
+                    <span>Total Case Processed</span>
+                    <div id="rb-grid" class="sscoverlaybox">
+                        <div>
+                            <a class="hint--top" data-hint="Details" id="titlefav" href="#">
+                                <button type="button" class="iconfont-th-large-outline bl"></button>
+                            </a>
+                            <div class="rb-overlay">
+                                <div class="chartpopup">
+                                    <h2>Total Case Processed <b class="rb-close iconfont-cancel"></b></h2>
+                                    <span id="AuditedDetailGraph" style="width:100%;height:100%"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-2 assesment-passed2">
+                    <h2>@Model.CaseInProgress</h2>
+                    <span>
+
+                    </span>
+                    <h2>Case In Progress</h2>
+                    <div id="rb-grid" class="sscoverlaybox">
+                        <div>
+
+                            <div class="rb-overlay">
+                                <div class="chartpopup">
+                                    <h2>Case In Progress <b class="rb-close iconfont-cancel"></b></h2>
+                                    <div class="report_grid marB10 gridDiv">
+                                        <div class="overflowBox6">
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="total-defective">
+                    <h2>
+                        @Model.ProductiveAux
+                    </h2>
+                    <span id="piechart" class="svg-pie"></span>
+                    <h2><div class="fr"></div></h2>
+                    <b>Total Productive Aux (HH:MM:SS)</b>
+                    <div id="rb-grid" class="sscoverlaybox">
+                        <div>
+                            <a class="hint--top" data-hint="Details" id="titlefav" href="#">
+                                <button type="button" class="iconfont-chart-area bl"></button>
+                            </a>
+                            <div class="rb-overlay">
+
+                                <div class="chartpopup">
+                                    <h2>Total Defective Transactions <b class="rb-close iconfont-cancel"></b></h2>
+                                    <div id="DefectsGraph" style="width:75%;">
+                                        <div id='myChart'></div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                @*<div class="non-critical-accuracy">
+                        <h2> @Model.ProductiveAux</h2>
+                        <span></span>
+                        <div id="rb-grid" class="sscoverlaybox">
+                            <div>
+                                <a class="hint--top" data-hint="Details" id="titlefav" href="#">
+                                    <button type="button" class="iconfont-chart-area"></button>
+                                </a>
+                                <div class="rb-overlay">
+
+                                    <div class="chartpopup">
+                                        <h2>NC Accuracy <b class="rb-close iconfont-cancel"></b></h2>
+                                        <span id="NonCriticalAccuracyGraph" style="height: 410px;"></span>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>*@
+
+
+
+
+            </div>
+
+
+        }
+    </div>
+    <div class="errorBox" id="showHideErrorBox" style="display: none;">
+        <span id="td_Message"></span>
+    </div>
+</div>
+@section Scripts{
+
+    @Scripts.Render("~/SharedResources/JS/jsonpath.js")
+    @Scripts.Render("~/SharedResources/JS/circle-progress.js")
+    @Scripts.Render("~/SharedResources/JS/jquery-pie-loader.js")
+    @Scripts.Render("~/SharedResources/JS/jquery.fittext.js")
+    @Scripts.Render("~/scripts/d3.v3.min.js")
+    @Scripts.Render("~/SharedResources/JS/Intelenetd3Charts.min.js")
+    @Scripts.Render("~/SharedResources/JS/boxgrid.js")
+    @Scripts.Render("~/SharedResources/JS/jquery.multiselect.js")
+    @Scripts.Render("~/SharedResources/JS/WAT_LiveTMDashboard.js")
+    
+    @Scripts.Render("~/SharedResources/JS/Common.js")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            debugger;
+
+
+        $("#DateFrom").kendoDatePicker({
+            format: "dd/MM/yyyy"
+        });
+        $("#DateTo").kendoDatePicker({
+            format: "dd/MM/yyyy"
+        });
+        $('#lbdt').css('width', 'auto')
+        LoadClients();
+
+//            FusionCharts.addEventListener("ready", function () { /* render your chart here*/ });
+//            FusionCharts.setCurrentRenderer('javascript')
+            var uicustom;
+            var colors=[];
+            colors=["#2fb5e5", "#99ca44", "#f7941e", "#3dafa0", "#4680b6"];
+             var data=@Html.Raw(ViewData["CampaignWiseAccuracyD3"]);
+             //var margin = {_width: 420,_height : 260,_top: 15, _right: 20, _bottom: 100, _left: 40 }
+             var margin = {_top: 15, _right: 20, _bottom: 100, _left: 40 }
+             var uicss={_rect:"bar-rect",_xaxis:"bar-x-axis",_yaxis:"bar-y-axis",_xaxislabel:"bar-xaxis-lable",_yaxislabel:"bar-yaxis-lable",_ylegend :"bar-y-lable",_xaxisminorline:"bar-x-line",_yaxisminorline:"bar-y-line",_datavalue:"bar-data-value",_legend:"bar-legend",_tooltip:"bar-tooltip"};
+            Intelenetd3Charts.bindD3bar(data,"CampaignWiseAccuracyGraph",margin,{_datavalue:true,_minorgridlines:false,_yvalue:"",_format:"",_legtitle:"bottom"},uicss);
+
+            $(".show_hide").on("click.CampaignWiseAccuracyGraph", function () {
+             data=@Html.Raw(ViewData["CampaignWiseAccuracyD3"]);
+             margin = {_top: 15, _right: 20, _bottom: 100, _left: 40 }
+             uicss={_rect:"bar-rect",_xaxis:"bar-x-axis",_yaxis:"bar-y-axis",_xaxislabel:"bar-xaxis-lable",_yaxislabel:"bar-yaxis-lable",_ylegend :"bar-y-lable",_xaxisminorline:"bar-x-line",_yaxisminorline:"bar-y-line",_datavalue:"bar-data-value",_legend:"bar-legend",_tooltip:"bar-tooltip"};
+                Intelenetd3Charts.bindD3bar(data,"CampaignWiseAccuracyGraph",margin,{_datavalue:true,_minorgridlines:false,_yvalue:"",_format:"",_legtitle:"bottom"},uicss);
+            }
+            );
+
+
+
+
+//            margin = {_width: 600,_height : 400,_top: 15, _right: 20, _bottom: 150, _left: 40}
+            margin = {_top: 15, _right: 20, _bottom: 150, _left: 40}
+            data =@Html.Raw(ViewData["AgentWiseData"]);
+            Intelenetd3Charts.bindD3PieChart(data, "SampledDetailGraph", margin, { _datavalue: true, _minorgridlines: false, _yvalue: "", _format: "", _legtitle: "right" }, {});
+
+
+               });
+
+
+
+
+
+    </script>
+
+
+}

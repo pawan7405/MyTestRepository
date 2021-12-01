@@ -1,0 +1,48 @@
+USE [Prism_Datamart_MVC]
+GO
+/****** Object:  UserDefinedFunction [dbo].[vaValidEmail]    Script Date: 8/17/2021 11:20:45 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [dbo].[vaValidEmail](@EMAIL varchar(100))
+
+RETURNS bit as
+BEGIN     
+  DECLARE @bitRetVal as Bit
+  IF (@EMAIL <> '' AND @EMAIL NOT LIKE '_%@__%.__%')
+     SET @bitRetVal = 0  -- Invalid
+  ELSE 
+    SET @bitRetVal = 1   -- Valid
+  RETURN @bitRetVal
+END 
+
+
+
+USE [Prism_Datamart_MVC]
+GO
+/****** Object:  UserDefinedFunction [dbo].[fn_ValidateFlightRefundPNR_Number]    Script Date: 8/17/2021 11:21:33 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [dbo].[fn_ValidateFlightRefundPNR_Number] 
+(@InputString Varchar(8000), 
+ @Type int)
+RETURNS int
+AS
+BEGIN
+
+DECLARE @r int
+SET @r = 0
+
+IF @Type = 0
+SELECT @r = 1 WHERE @InputString  LIKE '%[^a-z1-9]%'
+ELSE
+SELECT @r = 1 WHERE @InputString LIKE '%[^a-z1-9@()-_]%'
+
+RETURN @r
+
+END
+
+

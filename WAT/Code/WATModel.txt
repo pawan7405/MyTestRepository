@@ -1,0 +1,644 @@
+using System;
+using System.Configuration;
+using System.Collections.Generic;
+using System.Web.Mvc;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+
+
+namespace Prism.Model.WAT
+{
+    public class WatModel : BaseModel
+    {
+        public WatModel()
+        {
+            URNByPass = false;
+            MultiselectDropdown = "";
+            RefNoStatus = false;
+            DataDID = 0;
+            TodayWork = 0;
+            CarryForwardWork = 0;
+            TransferredTodayWork = 0;
+            hidDynamicControls = "";
+            TransferredCarryForwardWork = 0;
+            hdnDynamicDependencyControlsIDs = "";
+            hidDynamicStatus = "";
+        }
+        public string LoginMID { get; set; }
+        public string GlobalUserID { get; set; }
+        public string AccessType { get; set; }
+        public string ClientID { get; set; }
+        public string CampaignID { get; set; }
+        public string CampaignName { get; set; }
+        public string WorkGMID { get; set; }
+        public string WorkGroupName { get; set; }
+        public string WorkDMID { get; set; }
+        public string WorkDivisionName { get; set; }
+        public string WorkIMID { get; set; }
+        public string NWorkIMID { get; set; }
+        public string NWorkGMID { get; set; }
+        public string NWorkDMID { get; set; }
+        public string WorkItemName { get; set; }
+        public string OutcomeMID { get; set; }
+        public string Ticket { get; set; }
+        public string QueueID { get; set; }
+        public string SubQueueID { get; set; }
+        public string TransactionNO { get; set; }
+        public string AirName { get; set; }
+        public string hdnDate { get; set; }
+        public string StartDateTime { get; set; }
+        public DateTime StartDate_Time { get; set; }
+        public string Hour { get; set; }
+        public string minute { get; set; }
+        public string Outcome { get; set; }
+        public string StatusDID { get; set; }
+        public string ActionSMID { get; set; }
+        public string CurrentStatusID { get; set; }
+        public string CurrentStatus { get; set; }
+        public string CurrentStatusMessage { get; set; }
+        public string ActionStartDateTime { get; set; }
+        public string ActiveWorkStatusDID { get; set; }
+        public string ActiveWorkStatus { get; set; }
+        public string DailyWork { get; set; }
+        public string AgentWorkDID { get; set; }
+        public string WorkReceived { get; set; }
+        public string ActivityDate { get; set; }
+        public string WorkCompleted { get; set; }
+        public string ActionTime { get; set; }
+        public string DataValue { get; set; }
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public string RefNo { get; set; }
+        public string Doc_count { get; set; }
+        public string OutcomeRemarks { get; set; }
+        public string ClientID_Empower { get; set; }
+        public string ProjectID { get; set; }
+        public string ValidURN { get; set; }
+        public Boolean URNByPass { get; set; }
+        public string MultiselectDropdown { get; set; }
+        public Boolean RefNoStatus { get; set; }
+        public Int32 DataDID { get; set; }
+        public Int32 TodayWork { get; set; }
+        public Int32 CarryForwardWork { get; set; }
+        public Int32 TransferredTodayWork { get; set; }
+        public string hidDynamicControls { get; set; }
+        public string hidDynamicStatus { get; set; }
+        public Int32 TransferredCarryForwardWork { get; set; }
+        public string hdnDynamicDependencyControlsIDs { get; set; }
+        public string DynamicControls { get; set; }
+        public string UniqueID { get; set; }
+        public string TotalWorkCount { get; set; }
+        public string Type { get; set; }
+        public string Host { get; set; }
+        public string URL { get; set; }
+        public string AppName { get { return ConfigurationManager.AppSettings["AppName"]; } }
+        public string EmeraldIP { get { return ConfigurationManager.AppSettings["EmeraldIP"]; } }
+        public List<ListData> ListData { get; set; }
+        public List<ListData> ListOutcomeData { get; set; }
+        public List<ListData> ListQueueData { get; set; }
+        public List<ListData> ListSubQueueData { get; set; }
+        public string Createdby { get; set; }
+        public string RadioButtonValues { get; set; }
+        public List<LoadDynamicControlClass> LoadDynamicControlForComActivity { get; set; }
+        public List<LoadDynamicStatusClass> LoadDynamicStatusForComActivity { get; set; }
+        public Boolean Assignment { set; get; }
+        public Boolean SelfAssignment { set; get; }
+     
+    }
+    public class LoadDynamicControlClass
+    {
+        public LoadDynamicControlClass()
+        {
+            HideSectionParameterIDs = "0";
+        }
+        public string MiscMID { get; set; }
+        public string MiscName { get; set; }
+        public string MiscCOLName { get; set; }
+        public string MiscValue { get; set; }
+        public string MiscText { get; set; }
+        public string MiscType { get; set; }
+        public string MiscISMandatory { get; set; }
+        public string MiscValidation { get; set; }
+        public string MiscLength { get; set; }
+        public string Count { get; set; }
+        public string Count1 { get; set; }
+        public string OrderId { get; set; }
+        public string RadioButtonValues { get; set; }
+        public int Minlenght { get; set; }
+        public string CheckApplicable { get; set; }
+        public string AudotCaps { get; set; }
+        public string CustomValidation { get; set; }
+        public string HideSectionParameterIDs { get; set; }
+        public List<DdlDataClass> DDLData { get; set; }
+        public List<ListData> RadiobuttonList { set; get; }
+        public string DefaultValue { get; set; }
+
+    }
+    public class DdlDataClass
+    {
+        public string Text { get; set; }
+        public string Value { get; set; }
+        public string IsDependent { get; set; }
+        public string ParentDocDID { get; set; }
+        public string ParentDocMID { get; set; }
+    }
+
+    public class ListData
+    {
+        public string Text { get; set; }
+        public string Value { get; set; }
+    }
+    public class WatEmployeeAttendance : BaseModel
+    {
+        public string hdnSubmitOption { get; set; }
+        public string hdnSaveStatus { get; set; }
+        public string ClientIDs { get; set; }
+        public string LoginMID { get; set; }
+        public string GlobalUserID { get; set; }
+        public string AccessType { get; set; }
+        public string DateFrom { get; set; }
+        public string DateTo { get; set; }
+        public string TMIDs { get; set; }
+        public string EmployeeName { get; set; }
+        public string EmeraldIP { get { return ConfigurationManager.AppSettings["EmeraldIP"]; } }
+        public List<LoadTM> LoadTMForEmployeeAttendance { get; set; }
+        public List<AttendanceLeaveDetails> LoadAttendanceLeaveDetails { get; set; }
+        public string XML { get; set; }
+        public string CreatedBy { get; set; }
+        public string Host { get; set; }
+
+    }
+    public class WatMaster : BaseModel
+    {
+        public WatMaster()
+        {
+            ID = 0;
+            FreezeStatus = false;
+        }
+        public Int64 ID { get; set; }
+        public string SubID { get; set; }
+        public string SubName { get; set; }
+        public string Name { get; set; }
+        public string SearchName { get; set; }
+        public string ClientID { get; set; }
+        public string value { get; set; }
+        public string mappingvalue { get; set; }
+        public string AccessType { get; set; }
+        public Boolean WorkDivision { get; set; }
+        public string HostName { get; set; }
+        public string CreatedBy { get; set; }
+        public string Host { get; set; }
+        public Boolean FreezeStatus { get; set; }
+        public string EmeraldIP { get { return ConfigurationManager.AppSettings["EmeraldIP"]; } }
+        public string APTSeconds { get; set; }
+    }
+    public class WatWorkStatus : BaseModel
+    {
+        public WatWorkStatus()
+        {
+            IDs = 0;
+            SubID = "0";
+        }
+        public Int64 IDs { get; set; }
+        public string SubID { get; set; }
+        public string AgentWorkDID { get; set; }
+        public string TMIDs { get; set; }
+        public string WorkGMIDs { get; set; }
+        public string WorkItemIDs { get; set; }
+        public string CampaignIDs { get; set; }
+        public string AgentIds { get; set; }
+        public string ClientID { get; set; }
+        public string value { get; set; }
+        public string valuedetail { get; set; } // 0/1
+        public string Name { get; set; }
+        public string WorkItemName { get; set; }
+        public string TransferID { get; set; }
+        public string CarryFwdCount { get; set; }
+        public string CompletedCount { get; set; }
+        public string AssignedCount { get; set; }
+        public string Count { get; set; }
+        public string TransferType { get; set; }
+        public string Comments { get; set; }
+        public string AccessType { get; set; }
+        public string CreatedBy { get; set; }
+        public string Host { get; set; }
+        public string message { get; set; }
+        public string EmeraldIP { get { return ConfigurationManager.AppSettings["EmeraldIP"]; } }
+        //-------- WorkStatus
+        public string DateFrom { get; set; }
+        public string DateTo { get; set; }
+        //-------- WorkStatus End
+    }
+    public class LoadTM
+    {
+        public string Text { get; set; }
+        public string Value { get; set; }
+    }
+    public class AttendanceDetails
+    {
+        public string GlobalUserID { get; set; }
+        public string EmployeeName { get; set; }
+        public string Number { get; set; }
+        public string AttendanceDate { get; set; }
+        public string FTE { get; set; }
+        public string Sickness { get; set; }
+        public string Maternity { get; set; }
+        public string Holiday { get; set; }
+        public string FlexiTaken { get; set; }
+        public string FlexiAccured { get; set; }
+        public string AttendanceID { get; set; }
+        public string LoginMID { get; set; }
+        public string ParentGlobalUserID { get; set; }
+        public string Comment { get; set; }
+    }
+    public class AttendanceLeaveDetails
+    {
+        public string Number { get; set; }
+        public string LoginMID { get; set; }
+        public string FTE { get; set; }
+        public string Sickness { get; set; }
+        public string Maternity { get; set; }
+        public string Holiday { get; set; }
+        public string FlexiTaken { get; set; }
+        public string FlexiAccured { get; set; }
+        public List<AttendanceDetails> LoadAttendanceDetails { get; set; }
+    }
+    public class EmployeeAttendanceUpload : BaseModel
+    {
+        public EmployeeAttendanceUpload()
+        {
+            Id = 0;
+            Status = 0;
+            UploadType = 0;
+        }
+        public int Id { get; set; }
+        public string file { get; set; }
+        public string ClientID { get; set; }
+        public string ClientName { get; set; }
+        public string FilePath { get; set; }
+        public string FileName { get; set; }
+        public string FilePathSystem { get; set; }
+        public string ActualFileName { get; set; }
+        public string UploadData { get; set; }
+        public string CreatedBy { get; set; }
+        public string Host { get; set; }
+        public string MenuMDID { get; set; }
+        public Int16 Status { get; set; }
+        public Int16 UploadType { get; set; }
+        public List<EmployeeAttendanceUploadDetail> EmployeeAttendanceUploadList { get; set; }
+    }
+    public class EmployeeAttendanceUploadDetail
+    {
+        public string ClientName { get; set; }
+        public string FileName { get; set; }
+        public string ActualFileName { get; set; }
+        public string RecordCount { get; set; }
+        public string ValidRecordCount { get; set; }
+        public string InValidRecordCount { get; set; }
+        public string Status { get; set; }
+        public string CreatedDateTime { get; set; }
+        public string EmployeeName { get; set; }
+        public string FileUMID { get; set; }
+    }
+    public class TMCanvasHistory
+    {
+        public string ClientID { get; set; }
+        public string GlobalUserID { get; set; }
+        public string EmployeeName { get; set; }
+        public string CreatedBy { get; set; }
+        public string Host { get; set; }
+        public string MenuMDID { get; set; }
+        public string DateFrom { get; set; }
+        public string TMIDs { get; set; }
+        public string CDMIDs { get; set; }
+        public string AgentIDs { get; set; }
+    }
+    public class TMCanvas
+    {
+        public string MenuMDID { get; set; }
+        public string ClientIDs { get; set; }
+        public string TMIDs { get; set; }
+    }
+    //----------- EWA
+    public class EmployeeWorkAssignment
+    {
+        public string MenuMDID { get; set; }
+        public string ClientIDs { get; set; }
+        public string TMIDs { get; set; }
+        public string AgentIDs { get; set; }
+        public string WorkGMID { get; set; }
+        public string WorkDMID { get; set; }
+        public string WorkIMID { get; set; }
+        public string WorkReceived { get; set; }
+        public string AppName { get { return ConfigurationManager.AppSettings["AppName"]; } }
+        public string LoginMID { get; set; }
+        public string AccessType { get; set; }
+        public string GlobalUserID { get; set; }
+        public string UniqueID { get; set; }
+        public string StatusDID { get; set; }
+        public string WorkDivisionName { get; set; }
+        public string URL { get; set; }
+        public string Host { get; set; }
+        public string AgentName { get; set; }
+    }
+    //----------- EWA End
+    public class WatModelHilton : BaseModel
+    {
+
+        public WatModelHilton()
+        {
+            DataDID = 0;
+            AdultCount = "0";
+            ChildCount = "0";
+        }
+        public string LoginMID { get; set; }
+        public string GlobalUserID { get; set; }
+        public string AccessType { get; set; }
+        public string DeskMID { get; set; }
+        public string StatusDID { get; set; }
+        public string ActionSMID { get; set; }
+        public string CurrentStatusID { get; set; }
+        public string CurrentStatus { get; set; }
+        public string CurrentStatusMessage { get; set; }
+        public string ActionStartDateTime { get; set; }
+        public string ActiveWorkStatusDID { get; set; }
+        public string ActiveWorkStatus { get; set; }
+        public string AgentWorkDID { get; set; }
+        public string ActivityDate { get; set; }
+        public string ActionTime { get; set; }
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public Int32 DataDID { get; set; }
+        public string HotelCodeMID { get; set; }
+        public string HotelCode { get; set; }
+        public string PaymentType { get; set; }
+        public string Rate { get; set; }
+        public string Points { get; set; }
+        public string RequestedRooms { get; set; }
+        public string BookedRooms { get; set; }
+        public string CheckInDate { get; set; }
+        public string CheckOutDate { get; set; }
+        public string AdultCount { get; set; }
+        public string ChildCount { get; set; }
+        public string OutcomeMID { get; set; }
+        public string ReasonMID { get; set; }
+        public string AltHotelCodeMID { get; set; }
+        public string AltHotelCode { get; set; }
+        public string AltPaymentType { get; set; }
+        public string AltRate { get; set; }
+        public string AltPoints { get; set; }
+        public string AltOutcomeMID { get; set; }
+        public string AltReasonMID { get; set; }
+        public string UniqueID { get; set; }
+        public string Type { get; set; }
+        public string Host { get; set; }
+        public string URL { get; set; }
+        public string AppName { get { return ConfigurationManager.AppSettings["AppName"]; } }
+        public string EmeraldIP { get { return ConfigurationManager.AppSettings["EmeraldIP"]; } }
+        public List<ListData> ListHotelCodeData { get; set; }
+        public List<ListData> ListReasonData { get; set; }
+        public List<ListData> ListOutcomeData { get; set; }
+        //--new--
+        public string RescueMID { get; set; }
+        public string Createdby { get; set; }
+        public int IsSalesCall { get; set; }
+        public string CallTypeMID { get; set; }
+        public string PurposeMID { get; set; }
+        public int UpSell { get; set; }
+        public string UpsellReason { get; set; }
+        public string NotUpsellReason { get; set; }
+        public List<ListData> ListRescueData { get; set; }
+        public List<ListData> ListTypeCallData { get; set; }
+        public List<ListData> ListPurposeData { get; set; }
+        public int CrossSell { get; set; }
+
+    }
+
+
+
+    public class WatModelHrcc : BaseModel
+    {
+        public WatModelHrcc()
+        {
+            GuestCount = "0";
+            BookedRooms = "0";
+        }
+        public string LoginMID { get; set; }
+        public string AccessType { get; set; }
+        public string DeskMID { get; set; }
+        public string CurrentStatusID { get; set; }
+        public string CurrentStatus { get; set; }
+        public string CurrentStatusMessage { get; set; }
+        public string ActionStartDateTime { get; set; }
+        public string ActiveWorkStatus { get; set; }
+        public string ActivityDate { get; set; }
+        public string ActionSMID { get; set; }
+        public string ActionTime { get; set; }
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public string HotelCodeMID { get; set; }
+        public string HotelCode { get; set; }
+        public string UniqueID { get; set; }
+        public string Type { get; set; }
+        public string Host { get; set; }
+        public string URL { get; set; }
+        public string AppName { get { return ConfigurationManager.AppSettings["AppName"]; } }
+        public string EmeraldIP { get { return ConfigurationManager.AppSettings["EmeraldIP"]; } }
+        public List<ListData> ListHotelCodeData { get; set; }
+        public List<ListData> ListRescueData { get; set; }
+        public List<ListData> ListBedTypeData { get; set; }
+        public List<ListData> ListTypeCallData { get; set; }
+        public List<ListData> ListOutcomeData { get; set; }
+        public int DataDID { get; set; }
+        public string StatusDID { get; set; }
+        public int IsSalesCall { get; set; }
+        public string CallTypeMID { get; set; }
+        public string CheckInDate { get; set; }
+        public string CheckOutDate { get; set; }
+        public string GuestCount { get; set; }
+        public int Purpose { get; set; }
+        public string BedTypeMID { get; set; }
+        public int UpSell { get; set; }
+        public int OutcomeMID { get; set; }
+        public int Bookstatus { get; set; }
+        public string BookedRooms { get; set; }
+        public string RescueMID { get; set; }
+        public int CrossSell { get; set; }
+        public string GlobalUserID { get; set; }
+        public int FreezeStatus { get; set; }
+        public string CreatedDateTime { get; set; }
+        public string CreatedBy { get; set; }
+        public string UpdatedDateTime { get; set; }
+        public string UpdatedBy { get; set; }
+
+    }
+
+    public class LoadDynamicStatusClass
+    {
+        public LoadDynamicStatusClass()
+        {
+            HideSectionParameterIDs = "0";
+        }
+        public string ActionSMID { get; set; }
+        public string ActionStatus { get; set; }
+        public string AuxName { get; set; }
+        public string ActionGroup { get; set; }
+        public string StatusMessage { get; set; }
+        public string Colour { get; set; }
+        public string OrderId { get; set; }
+        public string HideSectionParameterIDs { get; set; }
+
+    }
+
+
+    public class WatModelTPRecommender : BaseModel
+    {
+
+        public WatModelTPRecommender()
+        {
+            DataDID = 0;
+            AdultCount = "0";
+            ChildCount = "0";
+        }
+        public string LoginMID { get; set; }
+        public string GlobalUserID { get; set; }
+        public string AccessType { get; set; }
+        public string DeskMID { get; set; }
+        public string StatusDID { get; set; }
+        public string ActionSMID { get; set; }
+        public string CurrentStatusID { get; set; }
+        public string CurrentStatus { get; set; }
+        public string CurrentStatusMessage { get; set; }
+        public string ActionStartDateTime { get; set; }
+        public string ActiveWorkStatusDID { get; set; }
+        public string ActiveWorkStatus { get; set; }
+        public string AgentWorkDID { get; set; }
+        public string ActivityDate { get; set; }
+        public string ActionTime { get; set; }
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public Int32 DataDID { get; set; }
+        public string HotelCodeMID { get; set; }
+        public string HotelCode { get; set; }
+        public string PaymentType { get; set; }
+        public string Rate { get; set; }
+        public string Points { get; set; }
+        public string RequestedRooms { get; set; }
+        public string BookedRooms { get; set; }
+        public string CheckInDate { get; set; }
+        public string CheckOutDate { get; set; }
+        public string AdultCount { get; set; }
+        public string ChildCount { get; set; }
+        public string OutcomeMID { get; set; }
+        public string ReasonMID { get; set; }
+        public string AltHotelCodeMID { get; set; }
+        public string AltHotelCode { get; set; }
+        public string AltPaymentType { get; set; }
+        public string AltRate { get; set; }
+        public string AltPoints { get; set; }
+        public string AltOutcomeMID { get; set; }
+        public string AltReasonMID { get; set; }
+        public string UniqueID { get; set; }
+        public string Type { get; set; }
+        public string Host { get; set; }
+        public string URL { get; set; }
+        public string AppName { get { return ConfigurationManager.AppSettings["AppName"]; } }
+        public string EmeraldIP { get { return ConfigurationManager.AppSettings["EmeraldIP"]; } }
+        public List<ListData> ListHotelCodeData { get; set; }
+        public List<ListData> ListReasonData { get; set; }
+        public List<ListData> ListOutcomeData { get; set; }
+        //--new--
+        public string RescueMID { get; set; }
+        public string Createdby { get; set; }
+        public int IsSalesCall { get; set; }
+        public string CallTypeMID { get; set; }
+        public string PurposeMID { get; set; }
+        public int UpSell { get; set; }
+        public string UpsellReason { get; set; }
+        public string NotUpsellReason { get; set; }
+        public List<ListData> ListRescueData { get; set; }
+        public List<ListData> ListTypeCallData { get; set; }
+        public List<ListData> ListPurposeData { get; set; }
+        public int CrossSell { get; set; }
+        public int MDevice { get; set; }
+        public int MPlan { get; set; }
+        public string CustomerChoice { set; get; }
+        public string MostDevice { get; set; }
+        public string MostPlan { get; set; }
+        public string OtherDevice { get; set; }
+        public string OtherPlan { get; set; }
+        public string ChartIDs { get; set; }
+
+        public string WorkGMID { get; set; }
+        public string WorkGroupName { get; set; }
+        public string WorkDMID { get; set; }
+        public string WorkDivisionName { get; set; }
+        public string WorkIMID { get; set; }
+
+
+    }
+    public class WATApproveActivity : BaseModel
+    {
+        public string DataDID { get; set; }
+        public string ClientID { get; set; }
+        public string TMID { get; set; }
+        public string Col1 { get; set; }
+        public string Col2 { get; set; }
+        public string Col3 { get; set; }
+        public string Col4 { get; set; }
+        public string Col5 { get; set; }
+        public string Col6 { get; set; }
+        public string Col7 { get; set; }
+        public string Col8 { get; set; }
+        public string value { set; get; }
+        public string WorkGMID { set; get; }
+    }
+    public class DataUploadForActivityTracker : BaseModel
+    {
+        public DataUploadForActivityTracker()
+        {
+            Id = 0;
+            Status = 0;
+            UploadType = 0;
+        }
+        public int Id { get; set; }
+        public string file { get; set; }
+        public string ClientID { get; set; }
+        public string ClientName { get; set; }
+        public string FilePath { get; set; }
+        public string FileName { get; set; }
+        public string FilePathSystem { get; set; }
+        public string ActualFileName { get; set; }
+        public string UploadData { get; set; }
+        public string CreatedBy { get; set; }
+        public string Host { get; set; }
+        public string MenuMDID { get; set; }
+        public Int16 Status { get; set; }
+        public Int16 UploadType { get; set; }
+        public string UploadType_vodafone { get; set; }
+        public List<UploadType> ddlUploadTypeMaster { get; set; }
+        public List<FlightRefundDataDetail> FlightRefundDataDetail { get; set; }
+    }
+
+    public class UploadType
+    {
+        public string ID { get; set; }
+        public string Value { get; set; }
+    }
+    public class FlightRefundDataDetail
+    {
+        public string ClientName { get; set; }
+        public string FileName { get; set; }
+        public string ActualFileName { get; set; }
+        public string RecordCount { get; set; }
+        public string ValidRecordCount { get; set; }
+        public string InValidRecordCount { get; set; }
+        public string Status { get; set; }
+        public string CreatedDateTime { get; set; }
+        public string EmployeeName { get; set; }
+        public string FileUMID { get; set; }
+    }
+
+}

@@ -1,0 +1,154 @@
+USE [Prism_Datamart_MVC]
+GO
+
+/****** Object:  Table [dbo].[FailedVoucherDataMaster]    Script Date: 8/17/2021 11:08:23 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[FailedVoucherDataMaster](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Date] [datetime] NULL,
+	[Category] [nvarchar](500) NULL,
+	[BookingNumber] [nvarchar](200) NULL,
+	[Description] [varchar](max) NULL,
+	[FlightKey] [nvarchar](200) NULL,
+	[Action] [nvarchar](max) NULL,
+	[BookingLanguage] [nvarchar](200) NULL,
+	[Status] [bit] NULL,
+ CONSTRAINT [PK_FailedVoucherDataMaster] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+
+
+
+
+
+USE [Prism_Datamart_MVC]
+GO
+
+/****** Object:  Table [dbo].[FlightRefundDataMaster]    Script Date: 8/17/2021 11:10:19 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[FlightRefundDataMaster](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[RequestDate] [datetime] NULL,
+	[CustomerEmailAddress] [nvarchar](500) NULL,
+	[PNR] [nvarchar](200) NULL,
+	[Language] [varchar](50) NULL,
+	[PNRType] [nvarchar](50) NULL,
+	[Status] [bit] NULL,
+ CONSTRAINT [PK_FlightRefundDataMaster] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[FlightRefundDataMaster] ADD  CONSTRAINT [DF_FlightRefundDataMaster_Status]  DEFAULT ((0)) FOR [Status]
+GO
+
+
+
+
+USE [Prism_Datamart_MVC]
+GO
+
+/****** Object:  Table [dbo].[OMOPDataMaster]    Script Date: 8/17/2021 11:10:59 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[OMOPDataMaster](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Date] [datetime] NULL,
+	[Category] [nvarchar](500) NULL,
+	[BookingNumber] [nvarchar](200) NULL,
+	[Description] [varchar](max) NULL,
+	[FlightKey] [nvarchar](200) NULL,
+	[Action] [nvarchar](max) NULL,
+	[BookingLanguage] [nvarchar](200) NULL,
+	[Status] [bit] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+
+
+
+USE [Prism_Datamart_MVC]
+GO
+
+/****** Object:  Table [dbo].[EasyJet_QueueTypeMaster]    Script Date: 8/17/2021 11:12:16 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[EasyJet_QueueTypeMaster](
+	[QTMID] [int] IDENTITY(1,1) NOT NULL,
+	[QueueType] [varchar](100) NULL,
+	[Status] [bit] NULL,
+ CONSTRAINT [PK_EasyJet_QueueTypeMaster] PRIMARY KEY CLUSTERED 
+(
+	[QTMID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+
+
+
+USE [Prism_Datamart_MVC]
+GO
+
+/****** Object:  Table [dbo].[EasyJet_RawDataMaster]    Script Date: 8/17/2021 11:13:26 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[EasyJet_RawDataMaster](
+	[RawDMID] [int] IDENTITY(1,1) NOT NULL,
+	[FileUMID] [int] NULL,
+	[RequestDate] [varchar](500) NULL,
+	[CustomerEmailAddress] [varchar](500) NULL,
+	[PNR] [varchar](500) NULL,
+	[Language] [varchar](500) NULL,
+	[PNRType] [varchar](500) NULL,
+	[Date] [varchar](500) NULL,
+	[Category] [varchar](500) NULL,
+	[BookingNumber] [varchar](500) NULL,
+	[Description] [varchar](max) NULL,
+	[FlightKey] [varchar](500) NULL,
+	[Action] [varchar](500) NULL,
+	[BookingLanguage] [varchar](500) NULL,
+	[Status] [int] NULL,
+	[Reason] [varchar](500) NULL,
+ CONSTRAINT [PK_EasyJet_RawDataMaster] PRIMARY KEY CLUSTERED 
+(
+	[RawDMID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+
+
+
+
+
+
+

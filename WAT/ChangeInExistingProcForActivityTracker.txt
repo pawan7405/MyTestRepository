@@ -1,0 +1,37 @@
+CREATE A PROC BACKUP AS proc_WAT_EndActionStatus_ALG_BACKUP_17092021 OF proc_WAT_EndActionStatus_ALG ON 17092021
+
+MAKE CHANGE IN proc_WAT_EndActionStatus_ALG PROC ON 22092021 mention change date in procedure
+
+make chnages in proc_WAT_FetchDynamicControlValue proc and pass the loginmid parameter extra
+
+make chnaged in proc_IC_Uploaded_Data_Validate proc for remove the blank data for flight refund only and before doing this we careted a backup of proc like proc_IC_Uploaded_Data_Validate_backup_05012021 // 05/10/2021 
+
+select top 100 * from WAT_ActionStatusDetail_ALG order by 1 desc
+select top 100 *  from dbo.WAT_DataDetail_ALG  order by 1 desc
+
+select * from UploadDataColumnMapping
+ALTER TABLE  WAT_ActionStatusDetail_ALG  add  DataMTID bigint
+ALTER table WAT_ActionStatusDetail_ALG  add DataMTID bigint
+ALTER TABLE WAT_WorkDivisionWorkItemDetail ADD UMID INT
+ALTER TABLE WAT_WorkDivisionWorkItemDetail ADD SectorsVisibility tinyint
+
+ALTER TABLE WAT_WorkDivisionWorkItemDetailLog ADD UMID INT
+ALTER TABLE WAT_WorkDivisionWorkItemDetailLog ADD SectorsVisibility tinyint
+
+SELECT * FROM LoginMaster ORDER BY 1 DESC
+
+
+
+select * from WAT_ActionStatusDetail_ALG
+
+select * from WAT_WorkDivisionWorkItemDetailLog
+
+select * from WAT_DataMaster
+
+
+
+
+
+
+
+

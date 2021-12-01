@@ -1,0 +1,122 @@
+ #region ----- WAT_DynamicOutcomeControlMasterDetail Table Configuration-------------
+
+        [HttpGet]
+        public ActionResult OutcomeControlMasterDetailConfiguration(string id)
+        {
+            try
+            {
+                if (TempData["Message"] != null)
+                    ViewBag.ResultMessage = TempData["Message"];
+
+                ViewBag.MenuMDID = (id == null ? "0" : Querystring.Query("MenuMDID"));
+                OutcomeControlMasterDetailConfiguration model = new OutcomeControlMasterDetailConfiguration();
+
+                model.DOCDID = "0";
+                model.AddEdit = "A";
+
+                model.MenuMDID = id;
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ResultMessage = "Problem performing operation, please try later.";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "DynamicOutcomeControlMasterDetail", ex.ToString());
+                return View();
+            }
+        }
+
+
+        public JsonResult FetchDynamicOutcomeControlMasterDetail(string ClientMID, string DOCMID)
+        {
+            string Result = string.Empty;
+            DalwatMaster Dalwat = new DalwatMaster();
+            if (ClientMID == "0" && DOCMID == "0")
+            {
+                ClientMID = "0";
+                DOCMID = "0";
+            }
+
+            else
+
+            {
+                ClientMID = EncodeDecode.Decode(ClientMID);
+                DOCMID = EncodeDecode.Decode(DOCMID);
+
+            }
+            ds = Dalwat.Fetch_DynamicOutcomeControlMasterDetail(ClientMID, DOCMID);
+            DataTable dtColumnMapping = ds.Tables[0];
+            dtColumnMapping.Columns.Add("ClientIDEnc");
+            dtColumnMapping.Columns.Add("DOCMIDEnc");
+            for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+            {
+                DataRow dr = dtColumnMapping.Rows[i];
+                dr["ClientIDEnc"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["ClientID"].ToString());
+                dr["DOCMIDEnc"] = EncodeDecode.Encode(ds.Tables[0].Rows[i]["DOCMID"].ToString());
+                dr.AcceptChanges();
+
+            }
+
+            if (ds != null)
+            {
+                Result = CommonFunctions.ListToString(ds);
+            }
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+
+        [HttpPost]
+        public ActionResult OutcomeControlMasterDetailConfiguration(OutcomeControlMasterDetailConfiguration model)
+        {
+            DalwatMaster Dalwat = new DalwatMaster();
+            model.ClientMID = EncodeDecode.Decode(model.ClientMID);
+            model.DOCMID = EncodeDecode.Decode(model.DOCMID);
+
+            model.DBColumnName = model.DBColumnName;
+            model.LabelName = model.LabelName;
+            if (model.ControlID == "0")
+            {
+                model.ControlID = model.ControlID;
+            }
+            else
+            {
+                model.ControlID = EncodeDecode.Decode(model.ControlID);
+            }
+
+            model.ValidationType = model.ValidationType != null ? model.ValidationType.Trim() : string.Empty;
+            model.IsManadatory = model.IsManadatory;
+           // model.ValidationType = model.ValidationType;
+            model.Maxlength = model.Maxlength;
+            model.Minlength = model.Minlength;
+            model.OrderID = model.OrderID;
+            model.FreezeStatus = model.FreezeStatus;
+            model.AddEdit = model.AddEdit;
+            model.LoginMID = Session["LoginMID"].ToString();
+            model.Host = Session["Host"].ToString();
+            // model.FreezeStatus = "0";
+            string id = model.MenuMDID;
+
+            ds = Dalwat.AddEditDynamicOutcomeControlMasterDetail(model);
+            if (ds.Tables[0].Rows[0]["ErrorNumber"].ToString() == "1")
+            {
+                TempData["Message"] = "Data has been saved successfully.";
+                return RedirectToAction("OutcomeControlMasterDetailConfiguration" + "/" + id);
+            }
+            else if (ds.Tables[0].Rows[0]["ErrorNumber"].ToString() == "2")
+            {
+                TempData["Message"] = "Data has been updated successfully.";
+                return RedirectToAction("OutcomeControlMasterDetailConfiguration" + "/" + id);
+            }
+
+            else if (ds.Tables[0].Rows[0]["ErrorNumber"].ToString() == "3")
+            {
+                TempData["Message"] = "Outcome Control Already Configured for selected clientname and workgroup Name.";
+                return RedirectToAction("OutcomeControlMasterDetailConfiguration" + "/" + id);
+            }
+            else
+            {
+                TempData["Message"] = "An error occurred while performing the operation. Please try again later";
+                return RedirectToAction("OutcomeControlMasterDetailConfiguration" + "/" + id);
+            }
+        }
+
+        #endregion

@@ -1,0 +1,102 @@
+<div style="width: 100%; height: 200px; overflow-x: auto; display:none" id="dvSectors">
+                        <table style="width: 100%; border:thick" border="1" >
+                            <tr>
+                                <td width="150px" style="font-size: 11px">Date</td>
+                                <td width="150px" style="font-size: 11px">Category</td>
+                                <td width="150px" style="font-size: 11px">Booking_Number</td>
+                                <td width="150px" style="font-size: 11px">Description</td>
+                                <td width="150px" style="font-size: 11px">Flight_Key</td>
+                                <td width="150px" style="font-size: 11px ">Action</td>
+                                <td width="150px" style="font-size: 11px">Booking_Language</td>
+                            </tr>
+                            <tr>
+
+                                <td width="150px" style="font-size: 11px">26-Feb</td>
+                                <td width="150px" style="font-size: 11px">Direct</td>
+                                <td width="150px" style="font-size: 11px">K1LKK1Z</td>
+                                <td width="150px" style="font-size: 11px">Multiple transactions in payment information</td>
+                                <td width="150px" style="font-size: 11px">20210404GVALGW8481</td>
+                                <td width="150px" style="font-size: 11px">Issue voucher and thank you voucher</td>
+                                <td width="150px" style="font-size: 11px">EN</td>
+
+                            </tr>
+                            <tr>
+
+                                <td width="150px" style="font-size: 11px">26-Feb</td>
+                                <td width="150px" style="font-size: 11px">Direct</td>
+                                <td width="150px" style="font-size: 11px">K1LKK1Z</td>
+                                <td width="150px" style="font-size: 11px">Multiple transactions in payment information</td>
+                                <td width="150px" style="font-size: 11px">20210404GVALGW8481</td>
+                                <td width="150px" style="font-size: 11px">Issue voucher and thank you voucher</td>
+                                <td width="150px" style="font-size: 11px">EN</td>
+
+                            </tr>
+                            <tr>
+
+                                <td width="150px" style="font-size: 11px">26-Feb</td>
+                                <td width="150px" style="font-size: 11px">Direct</td>
+                                <td width="150px" style="font-size: 11px">K1LKK1Z</td>
+                                <td width="150px" style="font-size: 11px">Multiple transactions in payment information</td>
+                                <td width="150px" style="font-size: 11px">20210404GVALGW8481</td>
+                                <td width="150px" style="font-size: 11px">Issue voucher and thank you voucher</td>
+                                <td width="150px" style="font-size: 11px">EN</td>
+
+                            </tr>
+                            <tr>
+
+                                <td width="150px" style="font-size: 11px">26-Feb</td>
+                                <td width="150px" style="font-size: 11px">Direct</td>
+                                <td width="150px" style="font-size: 11px">K1LKK1Z</td>
+                                <td width="150px" style="font-size: 11px">Multiple transactions in payment information</td>
+                                <td width="150px" style="font-size: 11px">20210404GVALGW8481</td>
+                                <td width="150px" style="font-size: 11px">Issue voucher and thank you voucher</td>
+                                <td width="150px" style="font-size: 11px">EN</td>
+
+                            </tr>
+                            <tr>
+
+                                <td width="150px" style="font-size: 11px">26-Feb</td>
+                                <td width="150px" style="font-size: 11px">Direct</td>
+                                <td width="150px" style="font-size: 11px">K1LKK1Z</td>
+                                <td width="150px" style="font-size: 11px">Multiple transactions in payment information</td>
+                                <td width="150px" style="font-size: 11px">20210404GVALGW8481</td>
+                                <td width="150px" style="font-size: 11px">Issue voucher and thank you voucher</td>
+                                <td width="150px" style="font-size: 11px">EN</td>
+
+                            </tr>
+                            <tr>
+
+                                <td width="150px" style="font-size: 11px">26-Feb</td>
+                                <td width="150px" style="font-size: 11px">Direct</td>
+                                <td width="150px" style="font-size: 11px">K1LKK1Z</td>
+                                <td width="150px" style="font-size: 11px">Multiple transactions in payment information</td>
+                                <td width="150px" style="font-size: 11px">20210404GVALGW8481</td>
+                                <td width="150px" style="font-size: 11px">Issue voucher and thank you voucher</td>
+                                <td width="150px" style="font-size: 11px">EN</td>
+
+                            </tr>
+                            <tr>
+
+                                <td width="150px" style="font-size: 11px">26-Feb</td>
+                                <td width="150px" style="font-size: 11px">Direct</td>
+                                <td width="150px" style="font-size: 11px">K1LKK1Z</td>
+                                <td width="150px" style="font-size: 11px">Multiple transactions in payment information</td>
+                                <td width="150px" style="font-size: 11px">20210404GVALGW8481</td>
+                                <td width="150px" style="font-size: 11px">Issue voucher and thank you voucher</td>
+                                <td width="150px" style="font-size: 11px">EN</td>
+
+                            </tr>
+                            <tr>
+
+                                <td width="150px" style="font-size: 11px">26-Feb</td>
+                                <td width="150px" style="font-size: 11px">Direct</td>
+                                <td width="150px" style="font-size: 11px">K1LKK1Z</td>
+                                <td width="150px" style="font-size: 11px">Multiple transactions in payment information</td>
+                                <td width="150px" style="font-size: 11px">20210404GVALGW8481</td>
+                                <td width="150px" style="font-size: 11px">Issue voucher and thank you voucher</td>
+                                <td width="150px" style="font-size: 11px">EN</td>
+
+                            </tr>
+                        </table>
+
+                    </div>

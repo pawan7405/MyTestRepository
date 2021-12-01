@@ -1,0 +1,398 @@
+
+function ShowError() {
+    var showHideErrorBox = document.getElementById('showHideErrorBox');
+    if ($("#td_Message").text() == '' || showHideErrorBox.style.display == 'none') {
+        HideShow2('showHideErrorBox');
+        return false;
+    }
+}
+
+function LoadError(errormessage) {
+    if (errormessage != null && errormessage != "") {
+        $("#td_Message").html(errormessage);
+    }
+}
+
+
+function LoadProjects() {
+    $('#ddlProject').empty();
+    ShowProgress();
+    $.ajax({
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        url: $('#hidAppName').val() + '/QMS/FetchProjectsQMS',
+        data: '{}',
+        dataType: "json",
+        success: function (data) {
+            $('#ddlProject').empty();
+            var jsonstring = JSON.parse(data)
+            $('#ddlProject').append($("<option>").val("").html("- Select -"));
+            $(jsonstring).each(function (index) {
+                $('#ddlProject').append($("<option>").val(jsonstring[index].ID).html(jsonstring[index].Name));
+            });
+            $('#ddlProject').val($('#ProjectID').val());
+            $('#ddlProject').change(function () {
+                var id = $('#ddlProject').val();
+                $('#ProjectID').val(id);
+                LoadCampigns($('#ProjectID').val());
+            })
+            LoadCampigns($('#ProjectID').val());
+        },
+        error: function (Result) {
+            $('#DisableDiv').html("");
+            if (xhr.status === 401) {
+                window.location.href = $('#hidAppName').val() + "/Login";
+                return;
+            }
+            else {
+                $("#td_Message").html("Problem performing operation, please try again.");
+            }
+        }
+    });
+}
+
+function LoadCampigns(ProjectID) {
+    $("#td_Message").html('');
+    $('#ddlCampaign').empty();
+    ShowProgress();
+    var parameter = '{ ProjectIDs: "' + ProjectID + '",SiteIDs: "", LanguageIDs: "" }'
+    $.ajax({
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        url: $('#hidAppName').val() + '/QMS/FetchCampaignList',
+        data: parameter,
+        dataType: "json",
+        success: function (data) {
+            var jsonstring = JSON.parse(data)
+            $('#ddlCampaign').empty();
+            $('#ddlCampaign').append($("<option>").val("").html("- Select -"));
+            for (var i = 0; i < jsonstring.length; i++) {
+                $('#ddlCampaign').append($("<option>").val(jsonstring[i].ID).html(jsonstring[i].Name));
+            }
+            if (jsonstring.length == 1) {
+                $('#CampaignIDs').val(jsonstring[0].ID);
+            }
+            $('#ddlCampaign').val($('#CampaignID').val());
+            $('#ddlCampaign').change(function () {
+                var id = $('#ddlCampaign').val();
+                $('#CampaignID').val(id);
+            })
+            $('#DisableDiv').html("");
+        },
+        error: function (Result) {
+            $('#DisableDiv').html("");
+            if (xhr.status === 401) {
+                window.location.href = $('#hidAppName').val() + "/Login";
+                return;
+            }
+            else {
+                $("#td_Message").html("Problem performing operation, please try again.");
+            }
+            ShowError();
+        }
+    });
+}
+
+function ValidateSearch() {
+    LoadError("");
+    if ($("#Month").val() == "") {
+        LoadError("Please select Month");
+        $("#Month").focus();
+        return false;
+    }
+    if ($("#Year").val() == "") {
+        LoadError("Please select Year");
+        $("#Year").focus();
+        return false;
+    }
+    if ($("#ProjectID").val() == "0" || $("#ProjectID").val() == "") {
+        LoadError("Please select Project");
+        $("#ddlProject").focus();
+        return false;
+    }
+    if ($("#CampaignID").val() == "0" || $("#CampaignID").val() == "") {
+        LoadError("Please select Campaign");
+        $("#ddlCampaign").focus();
+        return false;
+    }
+    FetchAccuracyTargetMaster();
+}
+
+function FetchAccuracyTargetMaster() {
+    var parameter = '{ Month: "' + $("#Month").val() + '",Year: "' + $("#Year").val() + '", AuditSCMID: "' + $("#CampaignID").val() + '" }'
+    $('#tbl_Data').html("");
+    $.ajax({
+        type: "POST",
+        url: $('#hidAppName').val() + "/QMSAdmin/FetchAccuracyTargetMaster",
+        data: parameter,
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        beforeSend: function () {
+            ShowProgress();
+        },
+        complete: function () {
+            $('#DisableDiv').html("");
+        },
+        success: function (data) {
+            if (data != "") {
+                $("#hidData").val(data);
+                var jsonstring = JSON.parse(data);
+                $('#tbl_Data tr td').parents('tr').remove();
+                if (jsonstring.length > 0) {
+                    jsonstring = data.replace('[{', '{ "DataSet":[{') + "}";
+                    $('#hdnData').val(jsonstring);
+                }
+                else {
+                    $('#hdnData').val('');
+                    $("#td_Message").html("No record found.");
+                    $('#DisableDiv').html("");
+                }
+                BindData();
+            }
+            else {
+               
+                $("#td_Message").html("Problem performing operation, please try again.");
+                $('#DisableDiv').html("");
+            }
+        },
+        error: function (xhr) {
+            $('#DisableDiv').html("");
+            if (xhr.status === 401) {
+                window.location.href = $('#hidAppName').val() + "/Login";
+                return;
+            }
+            else {
+                $("#td_Message").html("Problem performing operation, please try again.");
+            }
+        }
+    });
+    return false;
+}
+
+function BindData() {
+    $('#tbl_Data').html("");
+    var data1 = $("#hidData").val();
+    var test = false;
+    var jsonstring
+    if (data1 == "[]") {
+        jsonstring = '{"DataSet":[{}]}'
+        $("#hidData").val('{"DataSet":[]');
+    }
+    else {
+        test = true;
+        jsonstring = data1.replace('[{', '{ "DataSet":[{') + "}";
+    }
+    var data = parseJSONSafely(jsonstring);
+    if (jsonstring.indexOf("DataSet") >= 0) {
+        $('#tbl_Data tr:not(:first)').remove();
+        $('#hdnFilteredRecordCount').val(data.DataSet.length);
+
+        var datapaging = data.DataSet.splice(0, data.DataSet.length);
+        $("#tbl_Data").append("<tbody><tr><th>Accuracy Parameter</th><th>Is Available</th>" +
+                                "<th>Red Range</th><th>Amber Range</th><th>Green Range</th><th>Edit</th></tr></tbody>");
+        if (test) {
+            for (var i = 0; i < datapaging.length; i++) {
+                var RedRange = "";
+                var AmberRange = "";
+                var GreenRange = "";
+                if (datapaging[i].RedRange != "0" && datapaging[i].RedRange != "") {
+                    RedRange = "< " + datapaging[i].RedRange;
+                }
+                if (datapaging[i].AmberRange != "0" && datapaging[i].AmberRange != "") {
+                    AmberRange = ">= " + datapaging[i].RedRange + " < " + datapaging[i].AmberRange;
+                }
+                if (datapaging[i].GreenRange != "0" && datapaging[i].GreenRange != "") {
+                    GreenRange = ">= " + datapaging[i].GreenRange;
+                }
+                $("#tbl_Data").append('<tr><td>' + datapaging[i].AccuracyParameter +
+                                    '</td><td>' + (datapaging[i].IsAvailable.toString() == "false" ? 'No' : 'Yes') +
+                                    '</td><td>' + RedRange +
+                                    '</td><td>' + AmberRange +
+                                    '</td><td>' + GreenRange +
+                                    '</td><td align="center">' +
+                                    '<a href="#" class="hint--top" data-hint="Edit">' +
+                                    '<button type="button" id="btn' + i + '" onclick="return EditAccuracyParameter(\'' + datapaging[i].AccuracyParameterMID + '\',\''
+                                                                                                                        + datapaging[i].AccuracyTargetMID + '\',\''
+                                                                                                                        + datapaging[i].AccuracyParameter + '\',\''
+                                                                                                                        + datapaging[i].IsAvailable + '\',\''
+                                                                                                                        + datapaging[i].RedRange + '\',\''
+                                                                                                                        + datapaging[i].AmberRange + '\',\''
+                                                                                                                        + datapaging[i].GreenRange + '\');" value="Edit" class="delete_user icon-pencil" ></button>' +
+                                    '</a></td></tr>');
+            }
+        }
+    }
+    else {
+       
+        $('#tbl_Data').html('');
+        $("#hdnFilteredData").val('');
+        $('#divPage').html('');
+    }
+    $('#DisableDiv').html("");
+}
+
+function EditAccuracyParameter(AccuracyParameterMID, AccuracyTargetMID, AccuracyParameter, IsAvailable, RedRange, AmberRange, GreenRange) {
+    $("#hidAccuracyParameterMID").val(AccuracyParameterMID);
+    $("#hidAccuracyTargetMID").val(AccuracyTargetMID);
+    $("#hidAccuracyParameter").val(AccuracyParameter);
+    $("#txtAccuracyParameter").val(AccuracyParameter);
+    $("#hidIsAvailable").val(IsAvailable);
+    $("#hidRedRange").val(RedRange);
+    $("#hidAmberRange").val(AmberRange);
+    $("#hidGreenRange").val(GreenRange);
+    BindRedRange();
+    $("#showUpdateRole").animate({ width: 'toggle' });
+    return false;
+}
+
+function BindRedRange() {
+    $('#ddlRedRange').empty();
+    $('#ddlRedRange').append($("<option>").val("").html("- Select -"));
+    for (var i = 1; i <= 100; i++) {
+        $('#ddlRedRange').append($("<option>").val(i).html("< " + i));
+    }
+    $('#ddlRedRange').val($('#hidRedRange').val());
+    $('#ddlRedRange').change(function () {
+        var id = $('#ddlRedRange').val();
+        $('#hidRedRange').val(id);
+        BindAmberRange($("#ddlRedRange").val());
+    })
+    BindAmberRange($("#ddlRedRange").val());
+}
+
+function BindAmberRange(RedRange) {
+    $('#ddlAmberRange').empty();
+    $('#ddlAmberRange').append($("<option>").val("").html("- Select -"));
+    if (RedRange != "") {
+        $('#ddlAmberRange').append($("<option>").val("0").html("Skip"));
+        for (var i = parseInt(RedRange) + 1; i <= 100; i++) {
+            $('#ddlAmberRange').append($("<option>").val(i).html(">= " + RedRange + " < " + i));
+        }
+        $('#ddlAmberRange').val($('#hidAmberRange').val());
+        $('#ddlAmberRange').change(function () {
+            var id = $('#ddlAmberRange').val();
+            $('#hidAmberRange').val(id);
+            BindGreenRange($("#ddlAmberRange").val());
+        })
+    } 
+    BindGreenRange($("#ddlAmberRange").val());
+}
+
+function BindGreenRange(AmberRange) {
+    if (AmberRange == "") {
+        $("#hidGreenRange").val(""); 
+        $("#txtGreenRange").val("");
+    }
+    else if (AmberRange == "0") {
+        $("#hidGreenRange").val($('#hidRedRange').val());
+        $("#txtGreenRange").val(">= " + $('#hidRedRange').val());
+    }
+    else {
+        $("#hidGreenRange").val(AmberRange); 
+        $("#txtGreenRange").val(">= " + AmberRange);
+    }
+}
+
+function ValidateAccuracyTarget() {
+    if ($("#hidRedRange").val() != "") {
+        if ($("#hidAmberRange").val() == "") {
+            $("#td_AccuracyTargetMessage").html("Please select Amber Range")
+            $('#ddlAmberRange').focus();
+            return false;
+        }
+    }
+    if ($("#hidGreenRange").val() != "") {
+        $("#hidIsAvailable").val("true");
+    }
+    else {
+        $("#hidIsAvailable").val("false");
+    }
+    var id = $("#hidAccuracyParameterMID").val();
+    var data1 = $("#hidData").val();
+    var jsonstring = data1.replace('[{', '{ "DataSet":[{') + "}";
+    $('#hdnData').val(jsonstring);
+    var data = parseJSONSafely($("#hdnData").val());
+    data.DataSet.splice(id - 1, 1);
+    data.DataSet.splice(id - 1, 0, { "AccuracyParameterMID": $("#hidAccuracyParameterMID").val(), "AccuracyTargetMID": $("#hidAccuracyTargetMID").val(),
+                                "AccuracyParameter": $("#hidAccuracyParameter").val(), "IsAvailable": $("#hidIsAvailable").val(),
+                                "RedRange": $("#hidRedRange").val(), "AmberRange": $("#hidAmberRange").val(), "GreenRange": $("#hidGreenRange").val()
+                                });
+                            var NewData = JSON.stringify(data).replace('{"DataSet":[{', '[{');
+    $("#hidData").val(NewData.substring(0, NewData.length - 1));
+    $("#showUpdateRole").animate({ height: 'toggle' });
+    ShowProgress();
+    var parameter = '{ Month: "' + $("#Month").val() + '",Year: "' + $("#Year").val() + '", AuditSCMID: "' + $("#CampaignID").val()
+                        + '",AccuracyTargetData: ' + JSON.stringify($("#hidData").val()) + ' }'
+    $.ajax({
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        url: $('#hidAppName').val() + "/QMSAdmin/AddEditAccuracyTargetMaster",
+        data: parameter,
+        dataType: "json",
+        beforeSend: function () {
+            ShowProgress();
+        },
+        complete: function () {
+            $('#DisableDiv').html("");
+        },
+        success: function (data) {
+            if (data != "") {
+                FetchAccuracyTargetMaster();
+                LoadError("Accuracy Target details updated successfully.")
+            }
+            else {
+                LoadError("Problem performing operation, please try again.");
+            }
+        },
+        error: function (Result) {
+            $('#DisableDiv').html("");
+            if (xhr.status === 401) {
+                window.location.href = $('#hidAppName').val() + "/Login";
+                return;
+            }
+            else {
+                $("#td_Message").html("Problem performing operation, please try again.");
+            }
+        }
+    });
+    return false;
+}
+
+function ValidateSubmit() {
+    ShowProgress();
+    var parameter = '{ Month: "' + $("#Month").val() + '",Year: "' + $("#Year").val() + '", AuditSCMID: "' + $("#CampaignID").val()
+                        + '",AccuracyTargetData: ' + JSON.stringify($("#hidData").val()) + ' }'
+    $.ajax({
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        url: $('#hidAppName').val() + "/QMSAdmin/AddEditAccuracyTargetMaster",
+        data: parameter,
+        dataType: "json",
+        beforeSend: function () {
+            ShowProgress();
+        },
+        complete: function () {
+            $('#DisableDiv').html("");
+        },
+        success: function (data) {
+            if (data != "") {
+                BindData();
+                LoadError("Accuracy Target details updated successfully.");
+            }
+            else {
+                LoadError("Problem performing operation, please try again.");
+            }
+        },
+        error: function (Result) {
+            $('#DisableDiv').html("");
+            if (xhr.status === 401) {
+                window.location.href = $('#hidAppName').val() + "/Login";
+                return;
+            }
+            else {
+                $("#td_Message").html("Problem performing operation, please try again.");
+            }
+        }
+    });
+    return false;
+}
