@@ -1,0 +1,716 @@
+﻿@model Prism.Model.WAT.WatModel
+@{
+    Layout = null; //"~/Views/Shared/MasterLayout.cshtml";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <!-- This is the main grid stylesheet -->
+    @Styles.Render("~/bundles/AgentMasterCss")
+
+    <link href="~/SharedResources/CSS/jquery.datetimepicker.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    @* @Scripts.Render("~/SharedResources/CSS/jquery.datetimepicker.css")*@
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryui")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/SharedResources/JS/Common.js")
+    @Scripts.Render("~/SharedResources/JS/WAT_ActivityTrackerEasyJet.js?ver=4")
+    @Scripts.Render("~/SharedResources/JS/kendo.all.min.js")
+    @Scripts.Render("~/SharedResources/JS/jquery.mCustomScrollbar.concat.min.js")
+
+    <script src="~/SharedResources/JS/php-date-formatter.js"></script>
+    <script src="~/SharedResources/JS/jquery.mousewheel.js"></script>
+    <script src="~/Scripts/jquery.datetimepicker.js"></script>
+
+
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+    <title>Activity Tracker</title>
+    <script type="text/javascript">
+        var clock;
+        $(document).ready(function () {
+            $("#showHideErrorBox").hide();
+            $("#titlefav").hide();
+
+
+        if(@Model.CurrentStatusID == "2")
+        {
+            GetFIFODetail();
+
+            }
+
+            if ($("#CurrentStatusID").val() == "21") {
+              // WorkItemsDetails();
+               WorkItemsDetails_EasyJet();
+            }
+            if ($("#SelfAssignment").val() == "True") {
+                $("#btnALGReport").css('display', 'block');
+            }
+            else {
+                $("#btnALGReport").css('display', 'none');
+            }
+            LoadError("@ViewBag.ErrorMessage");
+            $('#StartDateTime').kendoDatePicker({ format: "dd/MM/yyyy" });
+        });
+    </script>
+
+    <script type="text/javascript">
+        $(function () {
+
+            $('.showClick').click(function () {
+
+                $('.hidden').show();
+
+                $('.show').hide();
+
+            });
+
+            $('.hideClick').click(function () {
+
+                $('.hidden').hide();
+
+                $('.show').show();
+
+            });
+
+        });
+
+    </script>
+
+
+
+
+</head>
+<body onload="StartDateHome();">
+    @using (Html.BeginForm("ActivityTracker_Easyjet", "WAT", FormMethod.Post))
+    {
+        @Html.HiddenFor(m => m.AppName)
+        @Html.HiddenFor(m => m.ActionTime)
+        @Html.HiddenFor(m => m.StatusDID)
+        @Html.HiddenFor(m => m.CurrentStatus)
+        @Html.HiddenFor(m => m.CurrentStatusID)
+        @Html.HiddenFor(m => m.CurrentStatusMessage)
+        @Html.HiddenFor(m => m.ActionStartDateTime)
+        @Html.HiddenFor(m => m.ClientID)
+        @Html.HiddenFor(m => m.CampaignID)
+        @Html.HiddenFor(m => m.WorkGMID)
+        @Html.HiddenFor(m => m.WorkGroupName)
+        @Html.HiddenFor(m => m.WorkDMID)
+        @Html.HiddenFor(m => m.WorkDivisionName)
+        @Html.HiddenFor(m => m.WorkIMID)
+        @Html.HiddenFor(m => m.AgentWorkDID)
+        @Html.HiddenFor(m => m.TotalWorkCount)
+        @Html.HiddenFor(m => m.ActiveWorkStatus)
+        @Html.HiddenFor(m => m.LoginMID)
+        @Html.HiddenFor(m => m.AccessType)
+        @Html.HiddenFor(m => m.GlobalUserID)
+        @Html.HiddenFor(m => m.UniqueID)
+        @Html.HiddenFor(m => m.URL)
+        @Html.HiddenFor(m => m.ActionSMID)
+        @Html.HiddenFor(m => m.ActiveWorkStatusDID)
+        @Html.HiddenFor(m => m.OutcomeMID)
+        @Html.HiddenFor(m => m.ListData)
+        @Html.HiddenFor(m => m.ListOutcomeData)
+        @Html.HiddenFor(m => m.Type)
+        @Html.HiddenFor(m => m.hdnDate)
+        @Html.HiddenFor(m => m.Host)
+        @Html.HiddenFor(m => m.ClientID_Empower)
+        @Html.HiddenFor(m => m.MultiselectDropdown)
+        @Html.HiddenFor(m => m.ProjectID)
+        @Html.HiddenFor(m => m.ValidURN)
+        @Html.HiddenFor(m => m.SubQueueID)
+        @Html.HiddenFor(m => m.NWorkGMID)
+        @Html.HiddenFor(m => m.NWorkDMID)
+        @Html.HiddenFor(m => m.NWorkIMID)
+        @Html.HiddenFor(m => m.hidWorkGroupMID)
+        @Html.HiddenFor(m => m.hidDynamicControls, new { id = "hidDynamicControls" })
+        @Html.HiddenFor(m => m.hidDynamicStatus, new { id = "hidDynamicStatus" })
+
+
+        @Html.HiddenFor(m => m.Assignment)
+        @Html.HiddenFor(m => m.SelfAssignment)
+        <input id="hidAppName" type="hidden" value="" />
+        <input id="hidSelectWorkGroupMID" type="hidden" value="" />
+        <input id="hidParameterList" type="hidden" value="" />
+
+        <div class="activity-tracker">
+            <div class="watchBox">
+                <div class="bell-noti ">
+                    <b id="td_Today"></b><span class="bellbox iconfont-bell-5" onclick="HideShowTOP('alertMessage');">
+                        <i class="noti-num">0</i>
+                    </span>
+                    <div class="alertMenu" id="alertMessage" style="display: none;">
+                        <div>
+                        </div>
+                    </div>
+                </div>
+                <div id="countdown4" class="ClassyCountdownDemo">
+                </div>
+            </div>
+            <div class="statusBox">
+                @if (Model.CurrentStatusID == "21")
+                {
+
+                    <h2 class="bor_alln">
+                        <i class="icon-user-minus"></i>Idle
+                    </h2>
+                }
+                else if (Model.CurrentStatusID == "7")
+                {
+
+                    <h2 class="bor_alln">
+                        <i class="icon-user-minus"></i>Auto Wrap
+                    </h2>
+                }
+                else if (Model.CurrentStatusID == "23")
+                {
+                    <h2 class="bor_alln">
+                        <i class="icon-user-minus"></i>Auto Wrap
+                    </h2>
+                }
+                else if (Model.CurrentStatusID == "2")
+                {
+
+                    <h2>
+                        <i class="icon-user-minus"></i>@Model.CurrentStatus
+                    </h2>
+                    <ul id="dvActiveWork">
+                    </ul>
+
+                    <div>
+                        <a href="#" class="showClick show" style="font-size:10px">Show Detail</a>
+                        <a href="#" class="hideClick hidden" style="font-size:10px">Hide Detail</a>
+                    </div>
+
+                    <div class="hidden">
+                        <table width="400px" border="1">
+                            <tr>
+                                <td width="100px" style="font-size:12px">Campaign:</td>
+                                <td width="100px" style="font-size:12px">@Model.CampaignName </td>
+                                <td width="100px" style="font-size:12px">Work Group:</td>
+                                <td width="100px" style="font-size:12px">@Model.WorkGroupName</td>
+
+                            </tr>
+                            <tr>
+                                <td width="100px" style="font-size:12px">Work Division:</td>
+                                <td width="100px" style="font-size:12px">@Model.WorkDivisionName</td>
+                                <td width="100px" style="font-size:12px">Work Item:</td>
+                                <td width="100px" style="font-size:12px">@Model.WorkItemName</td>
+                            </tr>
+
+                        </table>
+
+
+                        @*<ul>
+                                <li>Campaign: @Model.CampaignName </li>
+                                <li>Work Group: @Model.WorkGroupName</li>
+                                <li>Work Division: @Model.WorkDivisionName</li>
+                                <li>Work Item: @Model.WorkItemName</li>
+
+                            </ul>*@
+                    </div>
+
+                    <span>
+                        <input type="submit" value="Change Status" id="btnChangeStatus" onclick="ChangeStatus(0,this);" />
+                    </span>
+                }
+                else
+                {
+
+                    <h2 class="bor_alln">
+                        <i class="icon-user-minus"></i>@Model.CurrentStatus
+                    </h2>
+                    <span>
+                        <input type="submit" value="Change Status" id="btnChangeStatus1" class="fr" onclick="ChangeStatus(0,this);" />
+                    </span>
+                }
+            </div>
+            <div class="errorBox2" id="showHideErrorBox">
+                <span id="td_Message">@ViewBag.ErrorMessage</span>
+            </div>
+            @if (Model.CurrentStatusID == "7")
+            {
+                List<SelectListItem> SelectitemsHR = new List<SelectListItem>();
+                for (int MM = 0; MM <= 23; MM++)
+                {
+                    if (Convert.ToString(MM).Length == 1)
+                    {
+                        SelectitemsHR.Add(new SelectListItem { Text = ("0" + Convert.ToString(MM)), Value = ("0" + Convert.ToString(MM)) });
+                    }
+                    else
+                    {
+                        SelectitemsHR.Add(new SelectListItem { Text = Convert.ToString(MM), Value = Convert.ToString(MM) });
+                    }
+                }
+
+                List<SelectListItem> SelectitemsMin = new List<SelectListItem>();
+                for (int MM = 0; MM <= 59; MM++)
+                {
+                    if (Convert.ToString(MM).Length == 1)
+                    {
+                        SelectitemsMin.Add(new SelectListItem { Text = ("0" + Convert.ToString(MM)), Value = ("0" + Convert.ToString(MM)) });
+                    }
+                    else
+                    {
+                        SelectitemsMin.Add(new SelectListItem { Text = Convert.ToString(MM), Value = Convert.ToString(MM) });
+                    }
+                }
+                SelectitemsMin.Insert(0, new SelectListItem { Text = "- MM -", Value = "", Selected = true });
+                SelectitemsHR.Insert(0, new SelectListItem { Text = "- HH -", Value = "", Selected = true });
+
+                <div class="completeBox" id="dvComplete">
+                    <legend>Complete</legend>
+                    <ul class="algscrol">
+                        @* <div runat="server" id="divWorkComplete" class="valueBox">@Model.TotalWorkCount
+                            </div>*@
+                        <li style="display: none">
+                            <label>
+                                Count
+                            </label>
+                            @Html.TextBoxFor(m => m.DataValue, new { maxlength = "3", onkeypress = "return KeyPressOnlyNumeric(event)", value = "1" })
+                        </li>
+                        @if (Model.WorkDMID == "28")
+                        {
+                            <li>
+                                <label>
+                                    Start DateTime
+                                </label>
+                                <span class="k-datepicker">
+                                    @Html.TextBoxFor(m => m.StartDateTime)
+                                </span><span>
+                                    @Html.DropDownListFor(m => m.Hour, new SelectList(SelectitemsHR, "Value", "Text", ""), new { width = "40px" })
+                                </span><span>
+                                    @Html.DropDownListFor(m => m.minute, new SelectList(SelectitemsMin, "Value", "Text", ""), new { width = "40px" })
+                                </span>
+                            </li>
+                        }
+                        @Html.Partial("_ComTaskDynamicColumn")
+                        @if (Model.ClientID_Empower == "165")
+                        {
+                            <li>
+                                <b>
+                                    @Html.CheckBoxFor(m => m.URNByPass)
+                                    ByPass URN Check
+                                </b>
+                            </li>
+                        }
+                        @if (Model.ClientID_Empower == "165")
+                        {
+                            <li>
+                                <label>
+                                    Document Count
+                                </label>
+                                @Html.TextBoxFor(m => m.Doc_count, new { maxlength = "3", onkeypress = "return KeyPressOnlyNumeric(event)" })
+                            </li>
+                        }
+                    </ul>
+                </div>
+                <div class="completebutton">
+                    <input type="submit" id="btnCompleteWork1" value="Complete" class="halfbutton fl"
+                           onclick="return ValidateCompleteWork(this)" />
+                    <input type="submit" id="btnCancelCompleteWork" value="Cancel" class="halfbutton fr"
+                           onclick="CancelWork(this);" />
+                </div>
+            }
+            else if (Model.CurrentStatusID == "21")
+            {
+                <div class="activedataBox">
+                    <legend>Active Data</legend>
+                    <ul>
+                        <li>
+                            <select id="ddlWorkGrpItem" title="WorkItem"></select>
+                        </li>
+                        <li>
+                            <select id="ddlWorkDivision" title="WorkItem"></select>
+                        </li>
+                        <li>
+                            <select id="ddlWorkItem" title="WorkItem"></select>
+                            <div runat="server" id="divTask" class="valueBox">
+                            </div>
+                        </li>
+                        <li>
+                            <input type="submit" value="Start" class="fullbutton" onclick="return ValidateWorkStart(this);" />
+                            <!--<button type="button" class="bghidebutton fr">Add to Favorite</button>  -->
+                        </li>
+                    </ul>
+                </div>
+            }
+            else if (Model.CurrentStatusID == "23")
+            {
+                <div class="activedataBox" id="dvCallComplete">
+                    <legend>Call Complete</legend>
+                    <ul>
+                        <li>
+                            <select id="ddlWorkGroup" title="WorkGroup"></select>
+                        </li>
+                        <li>
+                            <select id="ddlWorkDivision1" title="WorkDivision"></select>
+                        </li>
+                        <li>
+                            <select id="ddlCallOutcome" title="CallOutcome"></select>
+                        </li>
+                        <li>
+                            <b>
+                                @Html.CheckBoxFor(m => m.RefNoStatus, new { onchange = "return ChangeRefStatus()" })
+                                Reference Number Required
+                            </b>
+                        </li>
+                        <li>
+                            <label>
+                                Ref (Text or#)
+                            </label>
+                            @Html.TextBoxFor(m => m.RefNo, new { maxlength = "50", disabled = "true" })
+                        </li>
+                        <li>
+                            <input type="submit" id="btnCompleteWork" value="Call Complete" class="fullbutton"
+                                   onclick="return ValidateCallComplete(this)" />
+                        </li>
+                    </ul>
+                    <script type="text/javascript">LoadWorkGroupsForCall();</script>
+                </div>
+            }
+            @if (Model.CurrentStatusID != "22" && Model.CurrentStatusID != "23")
+            {
+                <div class="activedataBox" style="display: none">
+                    <input type="submit" class="fullbutton" value="Telephone Call" onclick="ChangeStatus(22,this);" />
+                </div>
+            }
+            @if (Model.CurrentStatusID == "2" || Model.CurrentStatusID == "21")
+            {
+                <div class="walkawayBox">
+                    <legend>Walk Away</legend>
+                    <ul>
+                        @for (int i = 0; i < Model.LoadDynamicStatusForComActivity.Count(); i++)
+                        {
+                            <li>
+                                <input type="submit" value='@Model.LoadDynamicStatusForComActivity[i].ActionStatus' onclick="return ChangeStatus('@Model.LoadDynamicStatusForComActivity[i].ActionSMID',this);" />
+                            </li>
+                        }
+                        @*<li>
+                                <input type="submit" value="Break" onclick="return ChangeStatus(13,this);" />
+                            </li>
+                            <li>
+                                <input type="submit" value="Fun and Work" onclick="ChangeStatus(32,this);" />
+                            </li>
+                            <li>
+                                <input type="submit" value="Briefing" onclick="ChangeStatus(9,this);" />
+                            </li>
+                            <li>
+                                <input type="submit" value="Knowledge Check" onclick="ChangeStatus(33,this);" />
+                            </li>
+                            <li>
+                                <input type="submit" value="Training" onclick="ChangeStatus(10,this);" />
+                            </li>
+                            <li>
+                                <input type="submit" value="TL/AM Meeting" onclick="ChangeStatus(27,this);" />
+                            </li>
+                            <li>
+                                <input type="submit" value="Cab Downtime" onclick="ChangeStatus(30,this);" />
+                            </li>
+                            <li>
+                                <input type="submit" value="Sick Downtime" onclick="ChangeStatus(29,this);" />
+                            </li>
+                            <li>
+                                <input type="submit" value="Quality Feedback" onclick="ChangeStatus(28,this);" />
+                            </li>
+                            <li>
+                                <input type="submit" value="No Work" onclick="ChangeStatus(34,this);" />
+                            </li>
+                            <li>
+                                <input type="submit" value="IT Downtime" onclick="ChangeStatus(31,this);" />
+                            </li>*@
+                    </ul>
+                </div>
+            }
+            @if (Model.CurrentStatusID == "21")
+            {
+                <div class="activityreportBox">
+                    <ul>
+                        <li>
+                            <input type="button" value="Status" class="halfbutton fl" onclick="return openAgentActivityDetails();" />
+                            <input type="submit" value="Logout" class="halfbutton fr" onclick="return logout(this);" />
+                        </li>
+                        <li>
+                            <input type="button" value="Self Assignment" class="fullbutton" id="btnALGReport" onclick="return openAgentDetailEntryALG();" />
+
+                            @*<input type="button" style="display: none" value="Activity Report" class="fullbutton"
+                                onclick="return openAgentDetailEntry();" />*@
+                        </li>
+                    </ul>
+                </div>
+            }
+        </div>
+
+
+        <div id="showUpdateRole" style="display: none">
+            <div style="height:auto">
+                <div class="bit-1" id="div4">
+                    <div class="pophead">
+                        <h2>
+                            All Sectors Details
+                        </h2>
+
+                    </div>
+                    <div class="contentBox">
+                        <div class="report_typeBox">
+                            <div class="overflowBox6">
+                                <table id="TableSectors" width="100%" cellspacing="1" cellpadding="0" border="1" class="gird1">
+                                </table>
+                            </div>
+                            <div class="errorBox" id="showHideErrorBoxEditSave">
+                                <span id="td_MessageEditSave"></span>
+                                <input type="button" id="dvCloseResult" class="blue_button fr"
+                                       value="Close" onclick="return ClosePopUP()" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+    }
+    @Scripts.Render("~/SharedResources/JS/Notification.js")
+    @Scripts.Render("~/SharedResources/JS/jquery.multiselect.js")
+    <script type="text/javascript">
+        var d = new Date();
+        var year = d.getFullYear();
+        $("#lblCopyright").html("&copy; " + year + " Teleperformance");
+
+        var MultiselectDropdownCntrls = $("#MultiselectDropdown").val().split("~");
+        if (MultiselectDropdownCntrls != "") {
+            for (var L in MultiselectDropdownCntrls) {
+                var SelectCntrls = MultiselectDropdownCntrls[L];
+                var parameter = '{MiscMID:"' + SelectCntrls + '"}';
+                BindMultiselect($('#AppName').val() + '/WAT/GetMultiselectDropdown', parameter, 'ddl' + SelectCntrls, 'hdn' + SelectCntrls, 'txt' + SelectCntrls);
+            }
+        }
+
+        (function ($) {
+            $(window).on("load", function (e) {
+                /* custom scrollbar fn call */
+                $(".content_1").mCustomScrollbar({
+                    scrollButtons: {
+                        enable: true
+                    }
+                });
+                $(".content_2").mCustomScrollbar({
+                    scrollInertia: 150
+                });
+                $(".content_3").mCustomScrollbar({
+                    scrollInertia: 600,
+                    autoDraggerLength: false
+                });
+                $(".content_4").mCustomScrollbar({
+                    set_height: "85%",
+                    mouseWheel: false
+                });
+                $(".content_5").mCustomScrollbar({
+                    horizontalScroll: true,
+                    scrollButtons: {
+                        enable: true
+                    },
+                    theme: "dark-thin"
+                });
+                $(".content_6").mCustomScrollbar({
+                    horizontalScroll: true,
+                    advanced: {
+                        autoExpandHorizontalScroll: true
+                    }
+                });
+                $(".content_7").mCustomScrollbar({
+                    set_width: "100%",
+                    scrollButtons: {
+                        enable: true
+                    },
+                    theme: "light-2"
+                });
+                $(".content_10").mCustomScrollbar({
+                    set_width: "100%",
+                    scrollButtons: {
+                        enable: true
+                    },
+                    theme: "light-2"
+                });
+                (function ($) {
+                    $(window).on("load", function (e) {
+                        /* custom scrollbar fn call */
+                        $(".content_10").mCustomScrollbar({
+                            scrollButtons: {
+                                enable: true
+                            }
+                        });
+                    });
+                })(jQuery);
+
+
+
+                /*
+                demo fn
+                functions below are for demo and examples
+                */
+                $(".demo_functions a[rel='append-new']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_6 .images_container").append("<img src='custom-scrollbar-plugin/demo_files/mcsThumb1.jpg' class='new' />");
+                    $(".content_6 .images_container img").load(function () {
+                        $(".content_6").mCustomScrollbar("update");
+                    });
+                });
+                $(".demo_functions a[rel='prepend-new']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_6 .images_container").prepend("<img src='custom-scrollbar-plugin/demo_files/mcsThumb8.jpg' class='new' />");
+                    $(".content_6 .images_container img").load(function () {
+                        $(".content_6").mCustomScrollbar("update");
+                    });
+                });
+                $(".demo_functions a[rel='append-new-scrollto']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_6 .images_container").append("<img src='custom-scrollbar-plugin/demo_files/mcsThumb1.jpg' class='new' />");
+                    $(".content_6 .images_container img").load(function () {
+                        $(".content_6").mCustomScrollbar("update");
+                        $(".content_6").mCustomScrollbar("scrollTo", "right");
+                    });
+                });
+                $(".demo_functions a[rel='scrollto']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_6").mCustomScrollbar("scrollTo", "#mcs_t_5");
+                });
+                $(".demo_functions a[rel='remove-last']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_6 .images_container img:last").remove();
+                    $(".content_6").mCustomScrollbar("update");
+                });
+                $(".demo_functions a[rel='toggle-width']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_6").toggleClass("toggle_width");
+                    $(".content_6").mCustomScrollbar("update");
+                });
+                $(".demo_functions a[rel='scrollto-par-5']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_7").mCustomScrollbar("scrollTo", "#par-5");
+                });
+                $(".demo_functions a[rel='increase-height']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_7").animate({ height: 1100 }, "slow", function () {
+                        $(this).mCustomScrollbar("update");
+                    });
+                });
+                $(".demo_functions a[rel='decrease-height']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_7").animate({ height: 350 }, "slow", function () {
+                        $(this).mCustomScrollbar("update");
+                    });
+                });
+                var content_7_height = $(".content_7").height();
+                $(".demo_functions a[rel='reset-height']").click(function (e) {
+                    e.preventDefault();
+                    if ($(".content_7").height() != content_7_height) {
+                        $(".content_7").animate({ height: content_7_height }, "slow", function () {
+                            $(this).mCustomScrollbar("update");
+                        });
+                    }
+                });
+                $(".demo_functions a[rel='scrollto-bottom']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_7").mCustomScrollbar("scrollTo", "bottom");
+                });
+                $(".demo_functions a[rel='scrollto-top']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_7").mCustomScrollbar("scrollTo", "top");
+                });
+                $(".demo_functions a[rel='scrollto-par-1st']").click(function (e) {
+                    e.preventDefault();
+                    $(".content_7").mCustomScrollbar("scrollTo", "first");
+                });
+
+            });
+        })(jQuery);
+
+        $(document).ready(function () {
+            //LoadWorkGroups();
+            var ActionTime = parseInt($("#ActionTime").val());
+            $('#countdown4').ClassyCountdown({
+                end: $.now() + ActionTime,
+                labels: true,
+                style: {
+                    element: "",
+                    textResponsive: .59,
+
+                    hours: {
+                        gauge: {
+                            thickness: .08,
+                            bgColor: "rgba(93,89,82,.9)",
+                            fgColor: "#99ca44"
+                        },
+                        textCSS: 'font-family:\'Open Sans\'; font-size:25px; font-weight:300; color:#fff;'
+                    },
+                    minutes: {
+                        gauge: {
+                            thickness: .08,
+                            bgColor: "rgba(93,89,82,.9)",
+                            fgColor: "#23b7e5"
+                        },
+                        textCSS: 'font-family:\'Open Sans\'; font-size:25px; font-weight:300; color:#fff;'
+                    },
+                    seconds: {
+                        gauge: {
+                            thickness: .08,
+                            bgColor: "rgba(93,89,82,.9)",
+                            fgColor: "#f7941e"
+                        },
+                        textCSS: 'font-family:\'Open Sans\'; font-size:25px; font-weight:300; color:#fff;'
+                    }
+
+                },
+                onEndCallback: function () {
+                    console.log("Time out!");
+                }
+            });
+        });
+        $(document).ready(function () {
+
+            $("#ddlQueueID").change(function () {
+
+                url = $('#AppName').val() + '/WAT/FetchSubQueue?ParentID=' + this.value;
+                $.get(url, function (data) {
+                    $('#ddlSubQueueID').empty();
+                    var jsonstring = JSON.parse(data)
+
+                    $('#ddlSubQueueID').append($("<option>").val("").html("- Select -"));
+                    $(jsonstring).each(function (index) {
+                        $('#ddlSubQueueID').append($("<option>").val(jsonstring[index].ID).html(jsonstring[index].Name));
+                    });
+
+                });
+            });
+            var ActionTime = parseInt($("#ActionTime").val());
+        });
+        function HideShowTOP(e) {
+
+            if (e == 'alertMessage')
+                $("#" + e).slideToggle();
+            else
+                $("#" + e.id).slideToggle();
+        }
+        $(document).ready(function () {
+            $("#bellmenu").click(function (e) {
+
+                $("#" + e).slideToggle();
+
+            });
+
+
+        });
+
+    </script>
+</body>
+</html>

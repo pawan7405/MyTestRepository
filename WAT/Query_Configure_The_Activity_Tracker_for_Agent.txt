@@ -1,0 +1,39 @@
+select * from dbo.WAT_WorkGroupMaster where ClientID=202
+select * from dbo.WAT_WorkDivisionMaster where ClientID=202
+select * from dbo.WAT_WorkItemMaster where ClientID=202
+
+select * from WAT_WorkDivisionWorkItemDetail
+
+select * from WAT_WorkgorupQueueMapping
+
+select * from dbo.WAT_WorkGroupAgentDetail where LoginMID=24930
+
+insert into dbo.WAT_WorkGroupAgentDetail values(177,24930,5026,0,GETDATE(),22,'','','::1')
+insert into dbo.WAT_WorkGroupAgentDetail values(178,24930,5026,0,GETDATE(),22,'','','::1')
+insert into dbo.WAT_WorkGroupAgentDetail values(179,24930,5026,0,GETDATE(),22,'','','::1')
+
+select * from dbo.WAT_WorkGroupCampaignDetail where WorkGMID in (177,178,179)
+select * from dbo.WAT_WorkGroupCampaignDetail where WorkGMID in (170)
+select * from dbo.WAT_WorkGroupCampaignDetail where CampaignID in (2422)
+SELECT * FROM WAT_WorkGroupWorkDivisionDetail where WorkGMID in (177,178,179)
+SELECT * FROM WAT_WorkDivisionWorkItemDetail where WorkDMID in (322,323,324)
+
+
+insert into dbo.WAT_WorkGroupCampaignDetail values(177,2696,0,GETDATE(),22,'','','::1')
+insert into dbo.WAT_WorkGroupCampaignDetail values(178,2697,0,GETDATE(),22,'','','::1')
+insert into dbo.WAT_WorkGroupCampaignDetail values(179,2698,0,GETDATE(),22,'','','::1')
+
+insert into dbo.WAT_WorkGroupWorkDivisionDetail values(177,322,0,GETDATE(),22,'','','::1')
+insert into dbo.WAT_WorkGroupWorkDivisionDetail values(178,323,0,GETDATE(),22,'','','::1')
+insert into dbo.WAT_WorkGroupWorkDivisionDetail values(179,324,0,GETDATE(),22,'','','::1')
+
+insert into dbo.WAT_WorkDivisionWorkItemDetail values(322,1518,0,GETDATE(),22,'','','::1')
+insert into dbo.WAT_WorkDivisionWorkItemDetail values(323,1519,0,GETDATE(),22,'','','::1')
+insert into dbo.WAT_WorkDivisionWorkItemDetail values(324,1520,0,GETDATE(),22,'','','::1')
+
+
+select * from EmeraldHierarchies_MVC.dbo.Campaigns ORDER BY 1 DESC
+select * from EmeraldHierarchies_MVC.dbo.Projects where ProjectID=311
+select * from EmeraldHierarchies_MVC.dbo.Projects where ClientID=202
+select * from EmeraldHierarchies_MVC.dbo.Campaigns where ProjectID=617
+select * from EmeraldHierarchies_MVC.dbo.Campaigns where ProjectID=618

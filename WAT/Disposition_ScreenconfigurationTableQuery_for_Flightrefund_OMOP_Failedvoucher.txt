@@ -1,0 +1,109 @@
+Configure the Project and campaign
+
+
+
+
+
+
+
+
+--Configure the disposition screen with dynamic control database query
+
+Configuration for Flight Refund
+
+INSERT INTO WAT_DynamicOutcomeControlMaster VALUES(177,'WAT_DataDetail_ALG',202,0,GETDATE(),22,'','')
+INSERT INTO WAT_DynamicOutcomeControlMaster VALUES(178,'WAT_DataDetail_ALG',202,0,GETDATE(),22,'','')
+INSERT INTO WAT_DynamicOutcomeControlMaster VALUES(179,'WAT_DataDetail_ALG',202,0,GETDATE(),22,'','')
+
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1147,'Col2','Booking Reference',0,1,0,100,0,1,GETDATE(),22,'','',5,'','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1147,'Col3','Language',1,1,0,100,0,2,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1147,'Col6','Outcome',1,1,0,100,0,3,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1147,'Col7','Comment',2,0,0,200,0,4,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1147,'Col8','Pax email address',0,5,0,100,0,1,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1147,'Col9','Correct PNR',0,1,0,15,0,6,GETDATE(),22,'','',1,'','uppercase','','')
+
+--for outcome dropdown entry in dbo.WAT_DynamicDDLMst table  for flight refund
+INSERT INTO dbo.WAT_DynamicDDLMst 
+select 10332,Name,ParentDocDID,FreezeStatus,CreatedDateTime,CreatedBy,UpdatedDateTime,UpdatedBy,IsDependent,ParentDocMID,EMPID,EMPName,EmailID FROM dbo.WAT_DynamicDDLMst WHERE DDLMID not in (1410,1411) and DOCDID in (10273)
+
+--for language dropdown entry in dbo.WAT_DynamicDDLMst table  for flight refund
+INSERT INTO dbo.WAT_DynamicDDLMst 
+select 10331,Name,ParentDocDID,FreezeStatus,CreatedDateTime,CreatedBy,UpdatedDateTime,UpdatedBy,IsDependent,ParentDocMID,EMPID,EMPName,EmailID FROM dbo.WAT_DynamicDDLMst WHERE  DOCDID in (10270)
+
+
+Configuration for failed voucher
+
+
+INSERT INTO WAT_DynamicOutcomeControlMaster VALUES(177,'WAT_DataDetail_ALG',202,0,GETDATE(),22,'','')
+INSERT INTO WAT_DynamicOutcomeControlMaster VALUES(178,'WAT_DataDetail_ALG',202,0,GETDATE(),22,'','')
+INSERT INTO WAT_DynamicOutcomeControlMaster VALUES(179,'WAT_DataDetail_ALG',202,0,GETDATE(),22,'','')
+
+
+
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col2','Booking Reference',0,1,0,100,0,1,GETDATE(),22,'','',5,'','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col3','Language',1,1,0,100,0,2,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col6','Outcome',1,1,0,100,0,3,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col7','Comment',2,0,0,200,0,4,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col8','Pax email address',0,5,0,100,0,1,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col9','Correct PNR',0,1,0,15,0,6,GETDATE(),22,'','',1,'','uppercase','','')
+
+select DOCDID,* from dbo.WAT_DynamicOutcomeControlMasterDetail where DOCMID=1148 and FreezeStatus=0
+
+entry for bind the oucome dropdown in dbo.WAT_DynamicDDLMst  for failed voucher
+
+insert into dbo.WAT_DynamicDDLMst values(10338,'TY Voucher offered with Flight Voucher',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Flight Voucher issued',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Refund already processed',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Flight Voucher already issued',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Revenue Protection_No Action Taken',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Flight Flown_No Action Taken',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Flight change already actioned',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Future Dated Flight_No Action Taken',0,0,GETDATE(),22,'','',0,'','','','')
+
+
+
+Configuration for omop 
+
+
+INSERT INTO WAT_DynamicOutcomeControlMaster VALUES(177,'WAT_DataDetail_ALG',202,0,GETDATE(),22,'','')
+INSERT INTO WAT_DynamicOutcomeControlMaster VALUES(178,'WAT_DataDetail_ALG',202,0,GETDATE(),22,'','')
+INSERT INTO WAT_DynamicOutcomeControlMaster VALUES(179,'WAT_DataDetail_ALG',202,0,GETDATE(),22,'','')
+
+
+
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col2','Booking Reference',0,1,0,100,0,1,GETDATE(),22,'','',5,'','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col3','Language',1,1,0,100,0,2,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col6','Outcome',1,1,0,100,0,3,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col7','Comment',2,0,0,200,0,4,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col8','Pax email address',0,5,0,100,0,1,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(1148,'Col9','Correct PNR',0,1,0,15,0,6,GETDATE(),22,'','',1,'','uppercase','','')
+
+select DOCDID,* from dbo.WAT_DynamicOutcomeControlMasterDetail where DOCMID=1148 and FreezeStatus=0
+
+entry for bind the oucome dropdown in dbo.WAT_DynamicDDLMst  for failed voucher
+
+insert into dbo.WAT_DynamicDDLMst values(10338,'TY Voucher offered with Flight Voucher',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Flight Voucher issued',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Refund already processed',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Flight Voucher already issued',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Revenue Protection_No Action Taken',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Flight Flown_No Action Taken',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Flight change already actioned',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10338,'Future Dated Flight_No Action Taken',0,0,GETDATE(),22,'','',0,'','','','')
+
+
+
+--Configure for disposition type dropdown
+
+
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(DOCMID,'Col10','Disposition Type',1,0,0,100,0,7,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(DOCMID,'Col10','Disposition Type',1,0,0,100,0,7,GETDATE(),22,'','','','','uppercase','','')
+insert into dbo.WAT_DynamicOutcomeControlMasterDetail values(DOCMID,'Col10','Disposition Type',1,0,0,100,0,7,GETDATE(),22,'','','','','uppercase','','')
+
+insert into dbo.WAT_DynamicDDLMst values(10348,'Completed',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10348,'Escalated',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10349,'Completed',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10349,'Escalated',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10350,'Completed',0,0,GETDATE(),22,'','',0,'','','','')
+insert into dbo.WAT_DynamicDDLMst values(10350,'Escalated',0,0,GETDATE(),22,'','',0,'','','','')
+

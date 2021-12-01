@@ -1,0 +1,263 @@
+ [HttpGet]
+        public ActionResult OutcomeControlMasterDetailConfiguration(string id)
+        {
+            try
+            {
+                if (TempData["Message"] != null)
+                    ViewBag.ResultMessage = TempData["Message"];
+
+                ViewBag.MenuMDID = (id == null ? "0" : Querystring.Query("MenuMDID"));
+                OutcomeControlMasterDetailConfiguration model = new OutcomeControlMasterDetailConfiguration();
+
+                model.DOCDID = "0";
+                model.AddEdit = "A";
+
+                model.MenuMDID = id;
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ResultMessage = "Problem performing operation, please try later.";
+                ErrorLogger.ErrorLog(Path.GetFileName(Request.PhysicalPath), "DynamicOutcomeControlMasterDetail", ex.ToString());
+                return View();
+            }
+        }
+
+
+        public JsonResult FetchDynamicOutcomeControlMasterDetail(string ClientMID, string DOCMID)
+        {
+            string ResultList = string.Empty;
+            DalwatMaster da = new DalwatMaster();
+            if (ClientMID == "0" && DOCMID == "0")
+            {
+                ClientMID = "0";
+                DOCMID = "0";
+            }
+
+            else
+
+            {
+                ClientMID = EncodeDecode.Decode(ClientMID);
+                DOCMID = EncodeDecode.Decode(DOCMID);
+
+            }
+            ds = da.FetchMiscColumnMasterDetail(ClientMID, DOCMID);
+
+            ResultList = CommonFunctions.ListToString(ds);
+            int TextBoxCount = 0; int GetHeaderLevel = 0;
+            if (ds != null && ds.Tables.Count > 1)
+            {
+                TextBoxCount = Convert.ToInt32(ds.Tables[1].Rows[0][0]);//Convert.IsDBNull(ds.Tables[1].Rows[0][0]): default(int) ?
+            }
+            if (ds != null && ds.Tables.Count > 2)
+            {
+                GetHeaderLevel = Convert.ToInt32(ds.Tables[2].Rows[0][0]);//Convert.IsDBNull(ds.Tables[1].Rows[0][0]): default(int) ?
+            }
+            var result = new { Result = ResultList, TxtBxCount = TextBoxCount, HeaderLevel = GetHeaderLevel };
+            // return Json(result, JsonRequestBehavior.AllowGet)
+            return Json(result, JsonRequestBehavior.AllowGet);
+
+        }
+        /// <summary>
+        /// Fetch Misc Dependant Columns based on AuditSMID
+        /// </summary>
+        /// <param name="AuditSMID"></param>
+        /// <returns>Dependent Column data for Dropdowns as JSonResult</returns>
+        public JsonResult FetchDependentColumn(string AuditSMID)
+        {
+            string Result = string.Empty;
+            DalwatMaster da = new DalwatMaster();
+            AuditSMID = EncodeDecode.Decode(AuditSMID);
+            ds = da.FillDropDown("DependentColumn", AuditSMID, "");
+            if (ds != null)
+            {
+                Result = CommonFunctions.ListToString(ds);
+            }
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+        /// <summary>
+        /// Fetch Misc Dependent data based on MiscMID(ParentID)
+        /// </summary>
+        /// <param name="MiscMID"></param>
+        /// <returns>Dependent Data Dataset as JSonResult</returns>
+        public JsonResult FetchDependentData(string MiscMID)
+        {
+            string Result = string.Empty;
+            DalwatMaster da = new DalwatMaster();
+            ds = da.FillDropDown("DependentData", MiscMID, "");
+            if (ds != null)
+            {
+                Result = CommonFunctions.ListToString(ds);
+            }
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+        /// <summary>
+        /// Add/Update Dynamic Columns data
+        /// </summary>
+        /// <param name="datatable"></param>
+        /// <param name="MiscMID"></param>
+        /// <param name="AuditSMID"></param>
+        /// <param name="MiscName"></param>
+        /// <param name="MiscType"></param>
+        /// <param name="MiscISMandatory"></param>
+        /// <param name="MiscValidation"></param>
+        /// <param name="MiscLength"></param>
+        /// <returns>Result as JSonResult</returns>
+        /// string MiscMID, string AuditSMID, string MiscName, string MiscType, string MiscISMandatory, string MiscValidation, string MiscLength, string DefaultVal
+        public JsonResult SaveData(string datatable, string ObjBO)
+        {
+            DataSet dsDynamic = new DataSet();
+            dt = new DataTable();
+            OutcomeControlMasterDetailConfiguration model = new OutcomeControlMasterDetailConfiguration();
+            string dsxml = string.Empty;
+            string s = ObjBO;
+            string[] values = s.Split(',');
+            model.DOCMID = values[0].Trim();
+            model.DOCMID = EncodeDecode.Decode(model.DOCMID);
+            model.DBColumnName = values[1].Trim();
+            model.LabelName = values[2].Trim();
+            model.MiscType = values[3].Trim();
+            model.IsManadatory = values[4].Trim();
+            model.MiscValidation = values[5].Trim();
+            model.Maxlength = values[6].Trim();
+            model.Minlength = values[7].Trim();
+            model.DefaultValue = values[8].Trim();
+            model.OrderId = values[9].Trim();
+            model.DOCDID = values[10].Trim();
+            model.DOCDID = model.DOCDID;
+            model.LoginMID = Session["LoginMID"].ToString();
+            model.Host = Session["Host"].ToString();
+
+            if (datatable != "")
+            {
+                JsonStringToDynamicDataTable(datatable, ref dt);
+                dsDynamic.Tables.Add(dt);
+                dsxml = dsDynamic.GetXml();
+            }
+            if (string.IsNullOrEmpty(model.MiscLength))
+            {
+                model.MiscLength = "0";
+            }
+            if (string.IsNullOrEmpty(model.DefaultValue))
+            {
+                model.DefaultValue = "";
+            }
+            string Result = string.Empty;
+            DalwatMaster da = new DalwatMaster();
+            DataSet dsResult;
+            if (model.MiscMID == "0")
+            {
+                dsResult = da.UpdateMiscColumnDataMaster(dsxml, model);
+            }
+            else
+            {
+                dsResult = da.UpdateMiscColumnDataMaster(dsxml, model);
+            }
+            if (dsResult != null)
+            {
+                Result = CommonFunctions.ListToString(dsResult);
+            }
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+        /// <summary>
+        /// Converts JSonString to DataTable for Dynamic Columns
+        /// </summary>
+        /// <param name="jsonString"></param>
+        /// <param name="dt"></param>
+        /// <returns></returns> 
+        public DataTable JsonStringToDynamicDataTable(string jsonString, ref DataTable dt)
+        {
+            string[] jsonStringArray = Regex.Split(jsonString.Replace("[", "").Replace("]", ""), "},{");
+            List<string> ColumnsName = new List<string>();
+            string[] jsonStringData = Regex.Split(jsonStringArray[0].Replace("{", "").Replace("}", ""), ",");
+            foreach (string ColumnsNameData in jsonStringData)
+            {
+                try
+                {
+                    int idx = ColumnsNameData.IndexOf(":");
+                    string ColumnsNameString = ColumnsNameData.Substring(0, idx - 1).Replace("\"", "");
+                    if (!ColumnsName.Contains(ColumnsNameString))
+                    {
+                        ColumnsName.Add(ColumnsNameString);
+                    }
+                }
+                catch
+                {
+                    throw new InvalidOperationException(string.Format("Error Parsing Column Name : {0}", ColumnsNameData));
+                }
+            }
+
+
+            foreach (string AddColumnName in ColumnsName)
+            {
+                dt.Columns.Add(AddColumnName);
+            }
+
+            foreach (string jSA in jsonStringArray)
+            {
+                string[] RowData = Regex.Split(jSA.Replace("{", "").Replace("}", ""), ",");
+                DataRow nr = dt.NewRow();
+                string RowColumns = string.Empty;
+                string RowDataString = string.Empty;
+                foreach (string rowData in RowData)
+                {
+
+                    int idx = rowData.IndexOf(":");
+                    RowColumns = rowData.Substring(0, idx - 1).Replace("\"", "");
+                    RowDataString = rowData.Substring(idx + 1).Replace("\"", "").Replace("\\", "");
+                    if ((RowDataString == "") || (RowDataString == "null"))
+                    {
+                        nr[RowColumns] = DBNull.Value;
+                    }
+                    else if (RowDataString == "false")
+                    {
+                        nr[RowColumns] = "0";
+                    }
+                    else if (RowDataString == "true")
+                    {
+                        nr[RowColumns] = "1";
+                    }
+                    else
+                    {
+                        nr[RowColumns] = RowDataString;
+                    }
+
+                }
+                dt.Rows.Add(nr);
+            }
+            return dt;
+        }
+        /// <summary>
+        /// Deletes Dynamic Columns
+        /// </summary>
+        /// <param name="MiscMID"></param>
+        /// <returns>Result as JsonString</returns>
+        public JsonResult DeleteMiscColumn(string MiscMID)
+        {
+            string Result = string.Empty;
+            DalwatMaster da = new DalwatMaster();
+            DataSet dsResult = da.DeleteColumnMaster(MiscMID, Session["LoginMID"].ToString(), Session["Host"].ToString());
+            if (dsResult != null)
+            {
+                Result = CommonFunctions.ListToString(dsResult);
+            }
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+        /// <summary>
+        /// Fetch options for Editing based on MiscMID
+        /// </summary>
+        /// <param name="MiscMID"></param>
+        /// <returns>Dataset as JSonString</returns>
+        public JsonResult FetchEditOption(string MiscMID)
+        {
+            string Result = string.Empty;
+            DalwatMaster da = new DalwatMaster();
+            DataSet dsResult = da.FetchEditOption(MiscMID, Session["LoginMID"].ToString(), Session["Host"].ToString());
+            if (dsResult != null)
+            {
+                Result = CommonFunctions.ListToString(dsResult);
+            }
+            return Json(Result, JsonRequestBehavior.AllowGet);
+        }
+
+        #endregion

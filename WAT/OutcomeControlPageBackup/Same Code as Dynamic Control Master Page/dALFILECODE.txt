@@ -1,0 +1,65 @@
+  #region WAT_DynamicOutcomeControlMasterDetail Table Configuration
+        public DataSet Fetch_DynamicOutcomeControlMasterDetail(string ClientMID, string DOCMID)
+        {
+            SqlParam.Clear();
+            SqlParamAdd("@ClientMID", DbType.String, ClientMID);
+            SqlParamAdd("@DOCMID", DbType.String, DOCMID);
+
+            return datasetFromDB("proc_WAT_Fetch_DynamicOutcomeControlMasterDetail", true);
+        }
+
+        public DataSet UpdateMiscColumnDataMaster(string dsxml, OutcomeControlMasterDetailConfiguration ObjBO)
+        {
+
+            SqlParam.Clear();
+            SqlParamAdd("@DOCDID", DbType.Int64, Convert.ToInt64(ObjBO.DOCDID));
+            SqlParamAdd("@DOCMID", DbType.Int64, Convert.ToInt64(ObjBO.DOCMID));
+            SqlParamAdd("@DBColumnName", DbType.String, ObjBO.DBColumnName);
+            SqlParamAdd("@LabelName", DbType.String, ObjBO.LabelName);
+            SqlParamAdd("@ControlType", DbType.Int32, Convert.ToInt32(ObjBO.MiscType));
+            SqlParamAdd("@MiscISMandatory", DbType.Int32, Convert.ToInt32(ObjBO.MiscISMandatory));
+            SqlParamAdd("@MiscValidation", DbType.String, ObjBO.MiscValidation);
+            SqlParamAdd("@MiscmaxLength", DbType.Int32, Convert.ToInt32(ObjBO.Maxlength));
+            SqlParamAdd("@MiscminLength", DbType.Int32, Convert.ToInt32(ObjBO.Minlength));
+            SqlParamAdd("@ddlDynamicData", DbType.String, dsxml);
+            SqlParamAdd("@Updatedby", DbType.String, ObjBO.LoginMID);
+            SqlParamAdd("@DefaultVal", DbType.String, ObjBO.DefaultValue);
+            SqlParamAdd("@OrderId", DbType.String, ObjBO.OrderId);
+            //SqlParamAdd("@HideParameter", DbType.Boolean, Convert.ToBoolean(ObjBO.HideParameter));
+            //SqlParamAdd("@HideParameterIDs", DbType.String, ObjBO.HideParameterDropdown);
+
+            return datasetFromDB("proc_Admin_AddUpdateMiscColumnMaster", true);
+
+        }
+
+        public DataSet DeleteColumnMaster(string MiscMID, string LoginMID, string Host)
+        {
+
+            SqlParam.Clear();
+            SqlParamAdd("@MiscMID", DbType.Int64, Convert.ToInt64(MiscMID));
+            SqlParamAdd("@Updatedby", DbType.String, LoginMID);
+            SqlParamAdd("@Host", DbType.String, Host);
+            return datasetFromDB("proc_Admin_DeleteMiscColumnMaster", true);
+
+        }
+
+        public DataSet FetchEditOption(string MiscMID, string LoginMID, string Host)
+        {
+
+            SqlParam.Clear();
+            SqlParamAdd("@MiscMID", DbType.Int64, Convert.ToInt64(MiscMID));
+            SqlParamAdd("@Updatedby", DbType.String, LoginMID);
+            SqlParamAdd("@Host", DbType.String, Host);
+            return datasetFromDB("Proc_Admin_FetchMiscColumnData", true);
+
+        }
+
+        public DataSet FetchMiscColumnMasterDetail(string ClientMID, string DOCMID)
+        {
+            SqlParam.Clear();
+            SqlParamAdd("@ClientMID", DbType.String, ClientMID);
+            SqlParamAdd("@DOCMID", DbType.String, DOCMID);
+
+            return datasetFromDB("proc_WAT_Fetch_DynamicOutcomeControlMasterDetail", true);
+
+        }

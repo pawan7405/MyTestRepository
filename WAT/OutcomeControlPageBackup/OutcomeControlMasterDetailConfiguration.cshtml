@@ -1,0 +1,364 @@
+﻿@model Prism.Model.WAT.OutcomeControlMasterDetailConfiguration
+
+@{
+    ViewBag.Title = "OutcomeControlMasterDetailConfiguration";
+    Layout = "~/Views/Shared/MasterLayout.cshtml";
+}
+
+
+<div id="DisableDiv">
+</div>
+<input type="hidden" id="hdnData" />
+<input type="hidden" id="hdnCntrolMID" />
+<input type="hidden" id="hdnClientMID" />
+<input type="hidden" id="hdnDocMID" />
+<input type="hidden" id="hdnDOCDID" value="0" />
+
+<div class="container">
+    <div id="sidebar">
+        <div class="containerBox">
+            <nav class="quick_links">
+                <h2 runat="server" id="td_QuickLinks">
+                    Quick Links
+                </h2>
+                <ul class="puerto-menu">
+                    <div id="plcQuickLinks" class="content_8"></div>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <div class="main-content">
+        <a href="javascript:void(0)" data-toggle=".container" id="sidebar-toggle">
+            <img src="~/SharedResources/images/submenu_icon.png" alt="" />
+        </a>
+    </div>
+</div>
+<div class="bit-1" id="div1">
+    <div class="bodyBox">
+        <div class="contentBox">
+            <div class="report_typeBox">
+                <div class="report_head">
+                    <h2>
+                        Search Outcome Control
+                    </h2>
+                </div>
+                <div class="create_login filterDiv">
+                    <ul>
+                        <li>
+                            <label>
+                                Client Name
+                            </label>
+
+                            <select id="ddlclientSearch" name="ddlclientSearch">
+                            </select>
+                        </li>
+                        <li>
+                            <label>
+                                Outcome Control
+                            </label>
+                            <select id="ddloutcomecontrolSearch" name="ddloutcomecontrolSearch">
+                            </select>
+                        </li>
+
+                        <li>
+                            <input type="button" onclick="LoadGridData();" class="search_button fl mar0 fr_m"
+                                   value="Search">
+                        </li>
+
+                    </ul>
+                </div>
+                <div style="display: none;" runat="server" id="showHideErrorBox" class="errorBox">
+                    <span runat="server" id="td_Message"></span>
+                </div>
+            </div>
+            <div class="report_typeBox marT10">
+                <div class="report_head">
+                    <h2>
+                        Outcome Control Configuration
+                    </h2>
+                    <ul class="filerBox">
+                        <li>
+                            <a class="hint--top" data-hint="Add" id="titlefav" href="#">
+                                <button type="submit" id="btnAdd" class="add_icon icon-plus" onclick="return ShowAddOutcomeControlConfiguration();">
+                                </button>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="report_grid marB10">
+
+                    <div class="overflowBox6">
+                        <table id="tbl_Data" width="100%" cellspacing="1" cellpadding="0" border="0" class="gird1">
+                        </table>
+                    </div>
+                    <div class="Pager">
+                    </div>
+                </div>
+                <div class="errorBox" id="showHideErrorBox">
+                    <span id="td_Message"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="showUpdateRole" style="display: none">
+    @using (Html.BeginForm("OutcomeControlMasterDetailConfiguration", "WAT"))
+
+    {
+        @Html.HiddenFor(m => m.DOCDID)
+        @Html.HiddenFor(m => m.AddEdit)
+        @Html.HiddenFor(m => m.MenuMDID)
+        <div class="popup2">
+            <div class="popbox2">
+                <div class="bit-1" id="div4">
+                    <div class="pophead">
+                        <h2>
+                            Add/Edit Outcome Control Configuration
+                        </h2>
+                        <div class="close">
+                            <a href="#" id="dvCloseResult">x</a>
+                        </div>
+                    </div>
+                    <div class="contentBox">
+                        <div class="report_typeBox">
+                            <div class="updation_leave2 borBn">
+                                <ul>
+                                    <li>
+                                        <label>
+                                            Client
+                                        </label>
+                                        @Html.HiddenFor(m => m.ClientMID)
+                                        <select id="ddlclient">
+                                        </select>
+                                    </li>
+                                    <li>
+                                        <label>
+                                            select Outcome Control
+                                        </label>
+                                        @Html.HiddenFor(m => m.DOCMID)
+                                        <select id="ddloutcomecontrol">
+                                        </select>
+                                    </li>
+
+
+                                    <li>
+                                        <label>
+                                            DB Column Name
+                                        </label>
+
+
+                                        @Html.DropDownListFor(m => m.DBColumnName, new SelectListItem[]
+{
+               new SelectListItem() { Text = "Col1", Value = "Col1" },
+               new SelectListItem() { Text = "Col2", Value = "Col2" },
+               new SelectListItem() { Text = "Col3", Value = "Col3" },
+               new SelectListItem() { Text = "Col4", Value = "Col4" },
+               new SelectListItem() { Text = "Col5", Value = "Col5" },
+               new SelectListItem() { Text = "Col6", Value = "Col6" },
+               new SelectListItem() { Text = "Col7", Value = "Col7" },
+               new SelectListItem() { Text = "Col8", Value = "Col8" },
+               new SelectListItem() { Text = "Col9", Value = "Col9" },
+               new SelectListItem() { Text = "Col10", Value = "Col10" },
+               new SelectListItem() { Text = "Col11", Value = "Col11" },
+               new SelectListItem() { Text = "Col12", Value = "Col12" },
+               new SelectListItem() { Text = "Col13", Value = "Col13" },
+               new SelectListItem() { Text = "Col14", Value = "Col14" },
+               new SelectListItem() { Text = "Col15", Value = "Col15" },
+               new SelectListItem() { Text = "Col16", Value = "Col16" },
+               new SelectListItem() { Text = "Col17", Value = "Col17" },
+               new SelectListItem() { Text = "Col18", Value = "Col18" },
+               new SelectListItem() { Text = "Col19", Value = "Col19" },
+               new SelectListItem() { Text = "Col20", Value = "Col20" },
+
+},
+"-Select-")
+
+                                    </li>
+
+                                    <li>
+                                        <label>
+                                            Lable Name
+                                        </label>
+
+                                        @Html.TextBoxFor(m => m.LabelName, new { maxlength = "200" })
+
+                                    </li>
+
+
+                                    <li>
+                                        <label>
+                                            Control Type
+                                        </label>
+                                        @Html.HiddenFor(m => m.ControlID)
+                                        <select id="ddlControlType">
+                                        </select>
+                                    </li>
+
+
+                                    <li>
+                                        <label>
+                                            Is Manadatory
+                                        </label>
+
+                                        @Html.DropDownListFor(m => m.IsManadatory, new SelectListItem[]
+{
+
+                new SelectListItem() { Text = "Yes", Value = "1" },
+                new SelectListItem() { Text = "No", Value = "0" }
+},
+"-Select-")
+
+                                    </li>
+
+
+                                    <li>
+                                        <label>
+                                            Validation Type
+                                        </label>
+
+                                        @Html.DropDownListFor(m => m.ValidationType, new SelectListItem[]
+{
+
+                new SelectListItem() { Text = "MobileNumber", Value = "1" },
+                new SelectListItem() { Text = "Email", Value = "2" },
+                
+},
+"-Select-")
+
+                                    </li>
+
+
+                                    <li>
+                                        <label>
+                                            Max Length
+                                        </label>
+
+                                        @Html.TextBoxFor(m => m.Maxlength, new { maxlength = "5" })
+
+                                    </li>
+
+                                    <li>
+                                        <label>
+                                            Min Length
+                                        </label>
+
+                                        @Html.TextBoxFor(m => m.Minlength, new { maxlength = "5" })
+
+                                    </li>
+
+
+
+                                    <li>
+                                        <label>
+                                            Order ID
+                                        </label>
+
+                                        @Html.TextBoxFor(m => m.OrderID, new { maxlength = "5" })
+
+                                    </li>
+
+
+                                    <li>
+                                        <label>
+                                            Inactive
+                                        </label>
+                                        @Html.CheckBoxFor(m => m.FreezeStatus)
+                                    </li>
+
+                                </ul>
+                            </div>
+                            <div class="errorBox" id="showHideErrorBoxEditSave">
+                                <span id="td_MessageEditSave"></span>
+                                <input type="submit" id="btnEditSave" class="blue_button fr" onclick="return SaveData();"
+                                       value="Submit" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+
+
+<div id="showAddUpdateDropdownData" style="display: none">
+    
+        <div class="popup2">
+            <div class="popbox2">
+                <div class="bit-1" id="div4">
+                    <div class="pophead">
+                        <h2>
+                            Define Data
+                        </h2>
+                        <div class="close">
+                            <a href="#" id="dvCloseResult">x</a>
+                        </div>
+                    </div>
+                    <div class="contentBox">
+                        <div class="report_typeBox">
+                            <div class="updation_leave2 borBn">
+                                <ul>
+                                    <li>
+                                        <label>
+                                            Add Data Value
+                                        </label>
+                                        <input type="text" name="DataValue" id="datavalue">
+                                    </li>
+
+                                    <li>
+                                        <label>
+                                            Is Default Value
+                                        </label>
+
+
+
+                                    </li>
+
+                                </ul>
+                            </div>
+                            <div class="errorBox" id="showHideErrorBoxEditSave">
+                                <span id="td_MessageEditSave"></span>
+                                <input type="submit" id="btnEditSave" class="blue_button fr" onclick="return SaveDropdownData();"
+                                       value="Submit" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+</div>
+
+
+
+@section Scripts{
+    @Scripts.Render("~/SharedResources/JS/jsonpath.js")
+    @Scripts.Render("~/SharedResources/JS/jquery-ui.js")
+    @Scripts.Render("~/SharedResources/JS/jquery.multiselect.js")
+    @Scripts.Render("~/SharedResources/JS/Wat_OutcomeControlMasterDetailConfiguration.js")
+    <script type="text/javascript">
+        $(document).ready(function () {
+       //     LoadUploadDataColumnMapping()
+            BindSingleSelectClient("Client", "", "");
+          BindControl("ControlBind", "", "");
+            LoadGridData();
+
+          if (('@ViewBag.MenuMDID' != null) && ('@ViewBag.MenuMDID' != ""))
+                BindQuickLinks('@ViewBag.MenuMDID', '0');
+
+            LoadError('@ViewBag.ResultMessage');
+
+           // $('#isvisible').hide();
+            //$('#isvisibleDispositionColumnName').hide();
+            //$('#ControlTypeid').hide();
+            $("#dvCloseResult").click(function (e) {
+                $("#DOCMID").val("0");
+                $("#showUpdateRole").animate({ height: 'toggle' });
+                $("#td_Message").html("")
+                return ('false');
+            });
+        });
+    </script>
+}
+

@@ -1,0 +1,209 @@
+@{
+    ViewBag.Title = "Flight Refund Data";
+    Layout = "~/Views/Shared/MasterLayout.cshtml";
+}
+@model Prism.Model.WAT.DataUploadForActivityTracker
+
+<div id="DisableDiv">
+</div>
+<div class="bit-1" id="div1">
+    <div class="container">
+        <div id="sidebar">
+            <div class="containerBox">
+                <nav class="quick_links">
+                    <h2 runat="server" id="td_QuickLinks">
+                        Quick Links
+                    </h2>
+                    <ul class="puerto-menu">
+                        <div id="plcQuickLinks" class="content_8"></div>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <div class="main-content">
+        </div>
+        <div class="main-content">
+            <a href="javascript:void(0)" data-toggle=".container" id="sidebar-toggle">
+                <img src="~/SharedResources/images/submenu_icon.png" alt="" />
+            </a>
+        </div>
+    </div>
+    <div class="bodyBox">
+        @*<form action="/Admin/EmployeeDataUpload" method="post" enctype="multipart/form-data">*@
+
+        @using (Html.BeginForm("FlightRefund", "WAT", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+
+            <input type="hidden" id="MenuID" name="MenuID" runat="server" value='@ViewBag.MenuID' />
+            <div class="report_typeBox">
+                <div class="report_head">
+                    <h2>
+                        Data Upload
+                    </h2>
+                    <ul class="filerBox">
+                        <li>
+                            <a href="javascript:OpenTemplate();" class="hint--top" data-hint="Download Template">
+                                <button type="button" class="adv_filter icon-download"></button>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="create_login filterDiv">
+                    <ul>
+                        <li class="wh30">
+                            <label>
+                                Upload Queue Type
+                            </label>
+
+                            @*<select name="DataUploadType" id="DataUplaodType">
+                                    <option value="0">Select Data Queue Type</option>
+                                    <option value="1">Flight Refund Data</option>
+                                    <option value="2">Failed Vaoucher Data</option>
+                                    <option value="3">OMOP Data</option>
+
+                                </select>*@
+
+
+                            @Html.DropDownListFor(m => m.UploadType, new SelectListItem[]
+            {
+            new SelectListItem() { Text = "Select Data Queue Type", Value = "0" ,Selected=true},
+            new SelectListItem() { Text = "Flight Refund Data", Value = "1" },
+            new SelectListItem() { Text = "Failed Vaoucher Data", Value = "2"  },
+            new SelectListItem() { Text = "OMOP Data", Value = "3"  }
+            })
+                        </li>
+
+
+
+                        <li>
+                            <label>
+                                Upload Excel
+                            </label>
+                            <span>
+                                <input type="file" name="file" id="file" />
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="errorBox">
+                    <span id="td_Message" runat="server">@ViewBag.Message</span>
+                    <input type="submit" value="Upload" id="Upload" onclick="return ValidateUpload();"
+                           class="blue_button button_gap fr" />
+                </div>
+            </div>
+
+        }
+
+        <div class="report_typeBox marT10 marB38">
+            <div class="report_head">
+                <h2>
+                    Data Detail
+                </h2>
+                <ul class="filerBox">
+                    <li>
+                        <a data-hint="Expand/Collapse" class="hint--top" href="#">
+                            <button type="button" class="plus_grid gridPanel icon-grid_plus_icon minus">
+                            </button>
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+
+            <div class="report_grid marB10 gridDiv">
+                <div class="overflowBox3">
+                    <table id="TableEmployee" width="100%" cellspacing="1" cellpadding="0" border="0"
+                           class="gird1">
+                        <tbody>
+                            <tr>
+                                <th>
+                                    Client
+                                </th>
+                                <th>
+                                    FileName
+                                </th>
+                                <th>
+                                    Actual FileName
+                                </th>
+                                <th>
+                                    Total
+                                </th>
+                                <th>
+                                    Valid Record
+                                </th>
+                                <th>
+                                    Invalid Record
+                                </th>
+                                <th>
+                                    Status
+                                </th>
+                                <th>
+                                    Created Date
+                                </th>
+                                <th>
+                                    Uploaded By
+                                </th>
+                            </tr>
+                            @foreach (var item in Model.FlightRefundDataDetail)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.Encode(item.ClientName)
+                                    </td>
+                                    <td>
+                                        <a href="javascript:OpenFile('@item.FileName');" class="hint--top" data-hint="Download">
+                                            @Html.Encode(item.FileName)
+                                    </td>
+                                    <td>
+                                        <a href="javascript:OpenFile('@item.FileName');" class="hint--top" data-hint="Download">
+                                            @Html.Encode(item.ActualFileName)
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="javascript:TotalExportExcel('@item.FileUMID');" class="hint--top" data-hint="Download Total Records">
+                                            @Html.Encode(item.RecordCount)
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="javascript:ValidRecordExportExcel('@item.FileUMID');" class="hint--top" data-hint="Download Valid Records">
+                                            @Html.Encode(item.ValidRecordCount)
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="javascript:InValidRecordExportExcel('@item.FileUMID');" class="hint--top" data-hint="Download Invalid Records">
+                                            @Html.Encode(item.InValidRecordCount)
+                                        </a>
+                                    </td>
+                                    <td>
+                                        @Html.Encode(item.Status)
+                                    </td>
+                                    <td>
+                                        @Html.Encode(item.CreatedDateTime)
+                                    </td>
+                                    <td>
+                                        @Html.Encode(item.EmployeeName)
+                                    </td>
+                                </tr>
+
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="Pager">
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+@section Scripts{
+    @*@Scripts.Render("~/SharedResources/JS/jquery.min.js")*@
+    @Scripts.Render("~/SharedResources/JS/ActivityTrackerData.js")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if (('@ViewBag.MenuMDID' != null) && ('@ViewBag.MenuMDID' != ""))
+                BindQuickLinks('@ViewBag.MenuMDID', '0');
+            LoadError('@ViewBag.Message');
+        });
+    </script>
+}

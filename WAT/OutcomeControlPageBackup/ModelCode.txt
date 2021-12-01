@@ -1,0 +1,21 @@
+  public class OutcomeControlMasterDetailConfiguration
+    {
+        public string DOCDID { get; set; }
+        public string DOCMID { get; set; }
+        public string ClientMID { get; set; }
+        public string DBColumnName { get; set; }
+        public string LabelName { get; set; }
+        public string ControlID { get; set; }
+        public string IsManadatory { get; set; }
+        public string ValidationType { get; set; }
+        public string Maxlength { get; set; }
+        public string Minlength { get; set; }
+        public bool FreezeStatus { get; set; }
+        public string OrderID { get; set; }
+        public string CreatedDateTime { get; set; }
+        public string CreatedBy { get; set; }
+        public string Host { get; set; }
+        public string MenuMDID { get; set; }
+        public string AddEdit { get; set; }
+        public string LoginMID { get; set; }
+    }

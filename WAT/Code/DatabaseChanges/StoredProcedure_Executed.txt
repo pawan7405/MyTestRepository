@@ -1,0 +1,431 @@
+          
+CREATE PROCEDURE [dbo].[proc_Easyjet_GetActivityTracketDataList]          
+    (          
+      @LoginMID BIGINT ,          
+      @AccessType INT          
+    )          
+AS           
+    BEGIN          
+        IF (@AccessType = 6)        
+            BEGIN             
+                SELECT  row_number() OVER ( ORDER BY ( SELECT ''          
+                                                     ) ) AS RowId ,          
+                        CL.[ClientID] ,          
+                        CL.[ClientName] ,          
+                        EUF.[FileUMID] ,          
+                        EUF.[FilePath] ,          
+                        EUF.[FileName] ,          
+                        EUF.[ActualFileName] ,          
+                        EUS.[Status] ,          
+                        EUF.[RecordCount] ,          
+                        EUF.[ValidRecordCount] ,          
+                        EUF.[InvalidRecordCount] ,          
+                        EUF.[CreatedDateTime] ,          
+                        EUF.[CreatedBy] ,          
+                        EUF.[UpdatedDateTime] ,          
+                        EUF.[UpdatedBy] ,          
+                        EUF.[HostName] ,          
+                        LM.[EmployeeName]          
+                FROM    dbo.EasyJet_FileUplaodMaster EUF          
+                        JOIN EmeraldHierarchies_MVC.DBO.Clients CL ON CL.ClientID = EUF.ClientID          
+                        JOIN dbo.EU_StatusMaster EUS ON EUS.StatusID = EUF.[Status]          
+                        JOIN dbo.LoginMaster LM ON LM.LoginMID = EUF.CreatedBy          
+                WHERE   EUF.CreatedDateTime >= DATEADD(day, -7, GETDATE())         
+                 ORDER BY EUF.CreatedDateTime DESC         
+            END            
+        ELSE           
+            BEGIN            
+                SELECT  row_number() OVER ( ORDER BY ( SELECT ''          
+                                                     ) ) AS RowId ,          
+                        --'Status' AS [Status] ,          
+                        CL.[ClientID] ,          
+                        CL.[ClientName] ,          
+                        EUF.[FileUMID] ,          
+                        EUF.[FilePath] ,          
+                        EUF.[FileName] ,          
+                        EUF.[ActualFileName] ,          
+                        EUS.[Status] ,          
+                        EUF.[RecordCount] ,          
+                        EUF.[ValidRecordCount] ,          
+                        EUF.[InvalidRecordCount] ,          
+                        EUF.[CreatedDateTime] ,          
+                        EUF.[CreatedBy] ,          
+                        EUF.[UpdatedDateTime] ,          
+                        EUF.[UpdatedBy] ,          
+                        EUF.[HostName] ,          
+                        LM.[EmployeeName]          
+                FROM    dbo.EasyJet_FileUplaodMaster EUF          
+                        JOIN EmeraldHierarchies_MVC.DBO.Clients CL ON CL.ClientID = EUF.ClientID          
+                        JOIN dbo.EU_StatusMaster EUS ON EUS.StatusID = EUF.[Status]                                  
+                        JOIN dbo.LoginMaster LM ON LM.LoginMID = EUF.CreatedBy          
+                WHERE   EUF.CreatedDateTime >= DATEADD(day, -7, GETDATE())          
+                        AND EUF.CreatedBy = @LoginMID        
+                                
+                         ORDER BY EUF.CreatedDateTime DESC      
+            END          
+    END 
+
+
+
+--Select * from EU_RawDataMaster            
+            
+            
+--Exec [proc_WAT_EasyJet_ActivityTrackerDataValidate] 3682           
+CREATE PROCEDURE [dbo].[proc_WAT_EasyJet_ActivityTrackerFlightRefundDataValidate] @fileUMID BIGINT            
+AS            
+    BEGIN            
+ ---Transaction Start for the Data            
+        BEGIN TRAN saveData              
+  --Declaration for error message            
+        DECLARE @errorNumber BIGINT            
+        DECLARE @errorMessage VARCHAR(MAX)              
+        SET @errorNumber = 0               
+        SET @errorMessage = 'Failed to insert data in FlightRefundDataMaster on FlightRefundDataMaster following error.. ;'              
+        --for any error comes in procedure error will caught in CATCH.            
+        BEGIN TRY              
+            BEGIN             
+                DECLARE @SaveDateTime DATETIME            
+                SET @SaveDateTime = GETDATE()            
+                DECLARE @RowCount INT            
+                DECLARE @ClientID INT            
+                DECLARE @HRSystemSourcesID INT            
+                DECLARE @HRSourceRoleID BIGINT            
+                    
+                SELECT  @ClientID = EUF.ClientID ,            
+                        @HRSystemSourcesID = HRSS.HRSystemSourcesID            
+                FROM    dbo.EasyJet_FileUplaodMaster EUF            
+                        JOIN EmeraldHierarchies_MVC.dbo.HRSystemSources HRSS ON HRSS.ClientID = EUF.ClientID            
+                WHERE   EUF.[Status] = 1            
+                        AND FileUMID = @fileUMID AND EUF.ClientID=202          
+                    
+                IF OBJECT_ID('tempdb..#TempData') IS NOT NULL            
+                    DROP TABLE #TempData            
+                
+                UPDATE  EasyJet_RawDataMaster            
+                SET     RequestDate = CASE WHEN ISNUMERIC(RequestDate) = 1            
+                                             THEN CONVERT(VARCHAR(50), CAST(CAST(RequestDate AS FLOAT) AS DATETIME)            
+                                                  - 2, 121)            
+                                             ELSE RequestDate            
+                                        END ,            
+                                 
+                        CustomerEmailAddress = LTRIM(RTRIM(CustomerEmailAddress)) ,            
+                        PNR = LTRIM(RTRIM(PNR))            
+                 
+                WHERE   FileUMID = @fileUMID            
+                                
+                SELECT  *            
+                INTO    #TempData            
+                FROM    dbo.EasyJet_RawDataMaster            
+                WHERE   FileUMID = @fileUMID           
+          
+    UPDATE  #TempData            
+                SET     Reason = ISNULL(Reason, '') + ' | Request Date is Required' ,            
+                        [Status] = 2            
+                WHERE   RequestDate IS NULL            
+                        OR LTRIM(RTRIM(RequestDate)) = ''           
+      
+      
+       UPDATE  #TempData        
+                SET     Reason = ISNULL(Reason, '')        
+            + ' | Invalid Request Date' ,        
+                        [Status] = 2        
+                WHERE   ISDATE(ISNULL(RequestDate, '1900-01-01')) = 0         
+      
+              
+                UPDATE  #TempData            
+                SET     Reason = ISNULL(Reason, '') + ' | Email address Required' ,            
+                        [Status] = 2            
+                WHERE   CustomerEmailAddress IS NULL            
+                        OR LTRIM(RTRIM(CustomerEmailAddress)) = ''      
+            
+     UPDATE  #TempData            
+                SET     Reason = ISNULL(Reason, '') + ' | Email address is invalid' ,            
+                        [Status] = 2            
+                WHERE   dbo.vaValidEmail(CustomerEmailAddress) = '0'      
+                    
+                                UPDATE  #TempData            
+                SET     Reason = ISNULL(Reason, '') + ' | PNR Number Required' ,            
+    [Status] = 2            
+                WHERE   PNR IS NULL            
+                        OR LTRIM(RTRIM(PNR)) = ''        
+            
+            
+    UPDATE  #TempData       
+                SET     Reason = ISNULL(Reason, '') + ' | PNR Number should be max only 10 digit' ,            
+                        [Status] = 2            
+                WHERE   LEN(PNR) > 10         
+      
+      
+     UPDATE  #TempData            
+                SET     Reason = ISNULL(Reason, '') + ' | PNR Number should be alphanumeric value' ,            
+                        [Status] = 2            
+               WHERE    dbo.FlightRefundpnrNumberValidate(PNR,0) = '1'      
+           
+           
+                             
+                             
+          
+                UPDATE  #TempData            
+                SET     Status = 1            
+                WHERE   Reason IS NULL            
+                                  
+                        UPDATE  #TempData            
+                        SET     [Status] = 3            
+                        WHERE   [Status] = 1            
+                                            
+                    END            
+                                    
+                UPDATE  EUD            
+                SET     EUD.[Status] = TD.[Status] ,            
+                        EUD.Reason = TD.Reason            
+                FROM    EasyJet_RawDataMaster EUD            
+                        JOIN #TempData TD ON TD.RawDMID = EUD.RawDMID            
+                                
+                IF ( ( SELECT   COUNT(*)            
+                       FROM     #TempData            
+                                 
+                     ) = 0 )            
+                    BEGIN            
+                        UPDATE  dbo.EasyJet_FileUplaodMaster            
+                        SET     [Status] = 4 ,            
+                                RecordCount = ( SELECT  COUNT(*)            
+                                                FROM    dbo.EasyJet_RawDataMaster            
+                                                WHERE   FileUMID = @fileUMID            
+                                              ) ,            
+                                ValidRecordCount = ( SELECT COUNT(*)            
+                                                     FROM   dbo.EasyJet_RawDataMaster            
+                                                     WHERE  FileUMID = @fileUMID            
+                                                            AND [Status] <> 2            
+                                                   ) ,            
+                                InValidRecordCount = ( SELECT COUNT(*)            
+                                                       FROM   dbo.EasyJet_RawDataMaster            
+                                                       WHERE  FileUMID = @fileUMID            
+                                                              AND [Status] = 2            
+                                                     )            
+                        WHERE   FileUMID = @fileUMID                          
+                    END                              
+                ELSE            
+                    BEGIN            
+                        UPDATE  dbo.EasyJet_FileUplaodMaster            
+                        SET     [Status] = 3 ,            
+                                RecordCount = ( SELECT  COUNT(*)            
+                                                FROM    dbo.EasyJet_RawDataMaster            
+                                                WHERE   FileUMID = @fileUMID            
+                                              ) ,            
+                                ValidRecordCount = ( SELECT COUNT(*)            
+                                                     FROM   dbo.EasyJet_RawDataMaster            
+                                                     WHERE  FileUMID = @fileUMID            
+                                                            AND [Status] <> 2            
+                                                   ) ,            
+                        InValidRecordCount = ( SELECT COUNT(*)            
+                                                       FROM   dbo.EasyJet_RawDataMaster            
+                                                       WHERE  FileUMID = @fileUMID            
+          AND [Status] = 2            
+                                                     )            
+                        WHERE   FileUMID = @fileUMID            
+                                   
+                        DECLARE @batchGuID UNIQUEIDENTIFIER            
+                        SELECT  @batchGuID = NEWID()                                
+                                
+                        SELECT  ROW_NUMBER() OVER ( ORDER BY RawDMID ) UniID ,            
+                                RawDMID ,            
+                                RequestDate ,            
+                                CustomerEmailAddress ,            
+                                @batchGuID AS BatchGUID ,            
+                                PNR ,            
+                                Language ,            
+                                PNRType            
+                                          
+                        INTO    #Temp_FinalData            
+                        FROM    dbo.EasyJet_RawDataMaster RDM            
+                               JOIN EasyJet_FileUplaodMaster FUM ON RDM.FileUMID = FUM.FileUMID            
+                                                      WHERE   RDM.Status = 3            
+                                          
+                                AND FUM.Uploadtype = 1            
+                                AND RDM.FileUMID = @fileUMID         
+              
+              
+                            
+                        DECLARE @Count INT = 1            
+        
+                        WHILE @Count <= ( SELECT    COUNT(*)            
+                                          FROM      #Temp_FinalData            
+                                        )            
+                            BEGIN                
+                                DECLARE @RequestDate datetime          
+                                DECLARE @CustomerEmailAddress VARCHAR(500)            
+                                DECLARE @PNR VARCHAR(500)             
+                                DECLARE @Language VARCHAR(500)            
+                                DECLARE @PNRType VARCHAR(100)            
+                                         
+                                DECLARE @rawDMID BIGINT            
+                                SELECT  @RequestDate = ISNULL(RequestDate, '') ,            
+                                        @CustomerEmailAddress = ISNULL(CustomerEmailAddress, '') ,              
+                                        @rawDMID = RawDMID ,            
+                                        @PNR = PNR ,            
+                                        @Language = Language ,            
+                                        @PNRType = PNRType          
+                                                 
+                                FROM    #Temp_FinalData            
+                                WHERE   UniID = @Count            
+        
+                                       INSERT  INTO FlightRefundDataMaster        
+                                        VALUES  ( @RequestDate,          
+                                                  @CustomerEmailAddress,        
+                                                    @PNR,        
+                                                    @Language,        
+                                                   @PNRType,        
+                                                    0)        
+                                                                  
+                  
+                            
+                                          
+                                UPDATE  dbo.EasyJet_RawDataMaster            
+                                SET                 
+                                        Status = 4            
+                                WHERE   RawDMID = @rawDMID     
+                  
+                                SET @Count = @Count + 1                
+                            END                              
+                                       
+                        UPDATE  dbo.EasyJet_FileUplaodMaster            
+                        SET     [Status] = 4            
+                        WHERE   FileUMID = @fileUMID                            
+                                       
+               
+            
+                COMMIT TRAN saveData            
+            END             
+          
+             
+        END TRY              
+        ---Catch statement for any error occure and roleback the transaction.            
+        BEGIN CATCH              
+            ROLLBACK TRAN saveData               
+            SET @errorNumber = ERROR_NUMBER()              
+            SET @errorMessage = @errorMessage + '  ; System Error Message :-'            
+                + ERROR_MESSAGE() + CAST(@errorNumber AS VARCHAR(100))              
+            RAISERROR(@errorMessage,16,1)              
+            --RETURN @errorNumber              
+            SELECT  @errorNumber AS errorNumber ,            
+                    0 AS customiseRDID ,            
+                    @errorMessage AS errorMessage            
+        END CATCH            
+    END
+
+
+
+      
+ALTER PROCEDURE [dbo].[proc_Admin_ActivityTrackerFlightRefundDataFileUpload]                
+    @ClientID INT ,                
+    @FilePath VARCHAR(200) ,                
+    @FileName VARCHAR(100) ,                
+    @FilePathSystem VARCHAR(200) ,                
+    @ActualFileName VARCHAR(100) ,                
+    @Status TINYINT ,                
+    @UploadData NVARCHAR(MAX) ,                
+    @UploadType TINYINT ,                
+    @CreatedBy VARCHAR(100) ,                
+    @HostName VARCHAR(100) ,  
+   
+    @ErrorNumber BIGINT OUTPUT                
+AS                
+    BEGIN                 
+    ---Transaction Start for the Data                
+        BEGIN TRAN saveData                 
+            --Declaration for error message                
+                
+        DECLARE @errorMessage VARCHAR(MAX)                
+        SET @errorMessage = 'Failed to save data of fileuploaded following error.. ;'                
+                  
+        BEGIN TRY                
+            BEGIN                 
+                DECLARE @FileUMID INT = 0                
+                DECLARE @STR VARCHAR(MAX)                
+                DECLARE @ClientColumn VARCHAR(2000)                
+                DECLARE @InsertclientColumn VARCHAR(2000)                
+                
+             INSERT  INTO dbo.EasyJet_FileUplaodMaster                
+                        ( ClientID ,                
+                          FilePathSystem ,                
+                          FileName ,                
+                          ActualFileName ,                
+                          Status ,                
+                          Uploadtype ,                
+                          CreatedDateTime ,                
+                          CreatedBy ,                
+                          HostName,  
+        FileQueueType  
+                        )                
+                VALUES  ( @ClientID , -- ClientID - int                    
+                          @FilePathSystem , -- FilePathSystem - varchar(100)                    
+                          @FileName , -- FileName - varchar(200)                    
+                          @ActualFileName , -- ActualFileName - varchar(100)                    
+                          @Status , -- Status - tinyint                    
+                          @UploadType , -- Uploadtype - tinyint                    
+                          GETDATE() , -- CreatedDateTime - datetime                    
+                          @CreatedBy , -- CreatedBy - varchar(100)                    
+                          @HostName,  -- HostName - varchar(100)   
+        @UploadType  -- HostName - varchar(100)   
+          
+                        ) SET @FileUMID = SCOPE_IDENTITY();                
+                
+                PRINT(@FileUMID)    
+      
+     
+  
+                DECLARE @saveDatetime DATETIME                
+                SET @saveDatetime = GETDATE()                
+                DECLARE @ptrHandle INT                    
+                DECLARE @parameterXML XML                
+                SET @ptrHandle = 0                 
+                SET @parameterXML = @UploadData                
+                SET NOCOUNT ON;                    
+                EXEC sp_xml_preparedocument @ptrHandle OUTPUT, @parameterXML                    
+                    
+                SELECT  *                
+                INTO    #tmpRawdata                
+                FROM    OPENXML(@ptrHandle, '/NewDataSet/UploadData', 2)                    
+      WITH           
+       ([RequestDate] [VARCHAR] (500) ,                
+        [CustomerEmailAddress] [VARCHAR] (500) ,                
+        [PNR] [VARCHAR] (500) ,                
+        [Language] [VARCHAR] (500) ,                
+        [PNRType] [VARCHAR] (500)  
+    
+  )            
+                        INSERT  INTO dbo.EasyJet_RawDataMaster                
+                        ( FileUMID ,                
+         RequestDate ,                
+                          CustomerEmailAddress ,                
+                          PNR ,                
+                          Language ,                
+                          PNRType                                          
+         )                
+                        SELECT @FileUMID ,                
+                                RequestDate ,                
+                                CustomerEmailAddress ,                
+                                PNR ,                
+                                [Language] ,                
+                                PNRType                 
+                                          
+                        FROM    #tmpRawdata            
+                
+                          SET @ErrorNumber = 1                        
+             END                
+               COMMIT TRAN saveData             
+               Exec [proc_WAT_EasyJet_ActivityTrackerFlightRefundDataValidate] @FileUMID                
+  
+                            
+        END TRY                          
+        BEGIN CATCH                   
+            ROLLBACK TRAN saveData                         
+            SET @ErrorNumber = 2                 
+            SET @errorNumber = ERROR_NUMBER()                
+            SET @errorMessage = @errorMessage + '  ; System Error Message :-'                
+                + ERROR_MESSAGE() + CAST(@errorNumber AS VARCHAR(100))                
+            RAISERROR(@errorMessage,16,1)                
+        END CATCH                
+    END 
+
+
